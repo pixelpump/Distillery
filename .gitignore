@@ -1,0 +1,15 @@
+.env
+.local.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+audio_cache/*.mp3
+*.egg-info/
+dist/
+build/
+.DS_Store
