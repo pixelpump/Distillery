@@ -6,7 +6,7 @@ from typing import Iterator
 load_dotenv()
 load_dotenv(".local.env", override=True)
 
-OPENROUTER_MODEL = "google/gemini-flash-1.5"
+OPENROUTER_MODEL = "google/gemini-2.0-flash-001"
 
 SUMMARY_PROMPT = "Summarize the following article in 5 concise bullet points. Be direct, no preamble."
 

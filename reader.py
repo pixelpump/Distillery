@@ -1,3 +1,4 @@
+import re
 import trafilatura
 from trafilatura.settings import use_config
 from dataclasses import dataclass
@@ -32,6 +33,8 @@ def fetch_article(url: str) -> Article:
 
     if not result:
         raise ValueError("Could not extract article content from the page. The page may require JavaScript or block scrapers.")
+
+    result = re.sub(r'\n{3,}', '\n\n', result).strip()
 
     metadata = trafilatura.extract_metadata(downloaded)
 

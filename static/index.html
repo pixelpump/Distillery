@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Distillery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #f9f6f1;
@@ -34,7 +36,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 200;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -43,8 +46,10 @@
 
     /* ── Top Bar ── */
     #topbar {
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 100;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -54,12 +59,20 @@
       align-items: center;
       gap: 12px;
       box-shadow: var(--shadow);
+      transform: translateY(-100%);
+      opacity: 0;
+      transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    #topbar.visible {
+      transform: translateY(0);
+      opacity: 1;
     }
 
     #topbar .wordmark {
       font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+      font-weight: 200;
+      letter-spacing: 2px;
       color: var(--accent);
       flex-shrink: 0;
       user-select: none;
@@ -94,7 +107,7 @@
       border: none;
       border-radius: var(--radius);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 200;
       cursor: pointer;
       transition: background 0.15s, opacity 0.15s;
       white-space: nowrap;
@@ -102,10 +115,10 @@
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-primary {
-      background: var(--accent);
-      color: #fff;
+      background: #b1c9be;
+      color: #1a1a1a;
     }
-    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:hover:not(:disabled) { background: #9fb8ac; }
 
     .btn-ghost {
       background: transparent;
@@ -116,6 +129,37 @@
 
     .btn-icon {
       padding: 8px 10px;
+    }
+
+    .material-symbols-rounded {
+      font-family: 'Material Symbols Rounded', sans-serif;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: 'liga';
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .btn .material-symbols-rounded {
+      font-size: 18px;
+      vertical-align: middle;
+    }
+
+    .btn-arrow .material-symbols-rounded {
+      transition: transform 0.2s ease;
+      color: #f9f6f1;
+    }
+
+    .btn-arrow:hover .material-symbols-rounded {
+      transform: translateX(3px);
     }
 
     #topbar-right {
@@ -144,6 +188,7 @@
       max-width: 740px;
       margin: 0 auto;
       padding: 40px 24px 80px;
+      padding-top: 96px; /* Account for fixed header + spacing */
     }
 
     /* ── Home Screen ── */
@@ -152,16 +197,16 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: calc(100vh - 56px);
+      min-height: calc(100vh - 96px);
       text-align: center;
       gap: 16px;
     }
 
     #home-screen h1 {
       font-size: 36px;
-      font-weight: 700;
+      font-weight: 200;
       color: var(--accent);
-      letter-spacing: -1px;
+      letter-spacing: 2px;
     }
 
     #home-screen p {
@@ -241,9 +286,9 @@
     }
 
     .article-title {
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: 'Montserrat', Georgia, serif;
       font-size: 30px;
-      font-weight: 700;
+      font-weight: 200;
       line-height: 1.3;
       color: var(--text);
       margin-bottom: 12px;
@@ -290,7 +335,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--accent);
-      font-weight: 600;
+      font-weight: 200;
       margin-bottom: 14px;
     }
 
@@ -328,7 +373,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: var(--accent);
-      font-weight: 600;
+      font-weight: 200;
       margin-bottom: 12px;
     }
 
@@ -435,9 +480,10 @@
     @media (max-width: 600px) {
       #topbar { padding: 0 12px; gap: 8px; }
       #url-form { display: none; }
-      #main { padding: 24px 16px 60px; }
+      #main { padding: 80px 16px 60px; }
       .article-title { font-size: 24px; }
-      #home-screen h1 { font-size: 28px; }
+      #home-screen h1 { font-size: 28px; font-weight: 200; letter-spacing: -2px; }
+      #home-screen { min-height: calc(100vh - 80px); }
     }
   </style>
 </head>
@@ -449,16 +495,16 @@
 
   <form id="url-form" onsubmit="return false;">
     <input id="url-input" type="url" placeholder="Paste article URL…" autocomplete="off" />
-    <button class="btn btn-primary" id="fetch-btn-top" type="submit">Read</button>
+    <button class="btn btn-primary btn-arrow" id="fetch-btn-top" type="submit"><span class="material-symbols-rounded">arrow_forward</span></button>
   </form>
 
   <div id="topbar-right">
     <div id="font-size-ctrl">
-      <button class="btn btn-ghost btn-icon" id="font-dec" title="Smaller text">A−</button>
+      <button class="btn btn-ghost btn-icon" id="font-dec" title="Smaller text"><span class="material-symbols-rounded">text_decrease</span></button>
       <span id="font-size-label">18</span>
-      <button class="btn btn-ghost btn-icon" id="font-inc" title="Larger text">A+</button>
+      <button class="btn btn-ghost btn-icon" id="font-inc" title="Larger text"><span class="material-symbols-rounded">text_increase</span></button>
     </div>
-    <button class="btn btn-ghost btn-icon" id="theme-toggle" title="Toggle dark mode">🌙</button>
+    <button class="btn btn-ghost btn-icon" id="theme-toggle" title="Toggle dark mode"><span class="material-symbols-rounded">dark_mode</span></button>
   </div>
 </nav>
 
@@ -467,11 +513,12 @@
 
   <!-- HOME SCREEN -->
   <div id="home-screen">
+    <img src="/static/distillerylogo2.png" alt="Distillery" style="width: 80px; height: 80px; margin-bottom: 16px;" />
     <h1>Distillery</h1>
     <p>Paste any article URL to get a clean, distraction-free reading experience.</p>
     <form id="home-url-form" onsubmit="return false;">
       <input id="home-url-input" type="url" placeholder="https://example.com/article" autocomplete="off" />
-      <button class="btn btn-primary" id="fetch-btn-home" type="submit">Read</button>
+      <button class="btn btn-primary btn-arrow" id="fetch-btn-home" type="submit"><span class="material-symbols-rounded">arrow_forward</span></button>
     </form>
   </div>
 
@@ -502,8 +549,8 @@
 
     <!-- ACTIONS -->
     <div id="action-bar">
-      <button class="btn btn-ghost" id="summarize-btn">✦ Summarize</button>
-      <button class="btn btn-ghost" id="tts-btn">🔊 Listen</button>
+      <button class="btn btn-ghost" id="summarize-btn"><span class="material-symbols-rounded">auto_awesome</span> Summarize</button>
+      <button class="btn btn-ghost" id="tts-btn"><span class="material-symbols-rounded">headphones</span> Listen</button>
     </div>
 
     <!-- SUMMARY -->
@@ -520,7 +567,7 @@
         <span>Generating audio…</span>
       </div>
       <div class="audio-controls" id="audio-controls" style="display:none;">
-        <button id="play-btn" title="Play / Pause">▶</button>
+        <button id="play-btn" title="Play / Pause"><span class="material-symbols-rounded">play_arrow</span></button>
         <div class="progress-wrap">
           <input type="range" id="progress-bar" min="0" max="100" value="0" step="0.1" />
         </div>
@@ -542,6 +589,36 @@
 <audio id="audio-el" preload="auto"></audio>
 
 <script>
+  // ── Scroll-based header visibility ─────────────────────────────────────────
+  (function initScrollHeader() {
+    const topbar = document.getElementById('topbar');
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateHeader() {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+
+      if (scrollDelta > 0) {
+        // Scrolling down - hide
+        topbar.classList.remove('visible');
+      } else if (scrollDelta < 0) {
+        // Scrolling up - show
+        topbar.classList.add('visible');
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    }, { passive: true });
+  })();
+
   // ── Debug logger ───────────────────────────────────────────────────────────
   function dbg(label, ...args) {
     console.log(`%c[Distillery] ${label}`, "color:#52b788;font-weight:bold", ...args);
@@ -576,7 +653,7 @@
   function setTheme(t) {
     dbg("setTheme →", t);
     root.dataset.theme = t;
-    themeBtn.textContent = t === "dark" ? "☀️" : "🌙";
+    themeBtn.innerHTML = t === "dark" ? '<span class="material-symbols-rounded">light_mode</span>' : '<span class="material-symbols-rounded">dark_mode</span>';
     localStorage.setItem("distillery-theme", t);
   }
 
@@ -683,13 +760,13 @@
 
     const bodyEl = document.getElementById("article-body");
     bodyEl.innerHTML = "";
-    const paragraphs = data.text.split(/\n\n+/);
+    const paragraphs = data.text.split(/\n+/);
     dbg("paragraphs found", paragraphs.length);
     let rendered = 0;
     paragraphs.forEach(para => {
       if (!para.trim()) return;
       const p = document.createElement("p");
-      p.textContent = para.trim();
+      p.textContent = para.trim().replace(/\s+/g, " ");
       bodyEl.appendChild(p);
       rendered++;
     });
@@ -751,17 +828,6 @@
     if (url) loadArticle(url);
   });
 
-  document.getElementById("fetch-btn-top").addEventListener("click", () => {
-    const url = document.getElementById("url-input").value.trim();
-    dbg("fetch-btn-top click →", url);
-    if (url) loadArticle(url);
-  });
-
-  document.getElementById("fetch-btn-home").addEventListener("click", () => {
-    const url = document.getElementById("home-url-input").value.trim();
-    dbg("fetch-btn-home click →", url);
-    if (url) loadArticle(url);
-  });
 
   dbg("All event listeners attached.");
 
@@ -781,15 +847,17 @@
 
     btn.disabled = true;
     btn.textContent = "Summarizing…";
-    sec.style.display = "";
+    sec.style.display = "block";
     content.innerHTML = '<span class="cursor"></span>';
 
     try {
+      dbg("POST /summarize →", currentArticle.text.length, "chars");
       const res = await fetch("/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: currentArticle.text }),
       });
+      dbg("POST /summarize response", { status: res.status, ok: res.ok });
 
       if (!res.ok) throw new Error("Summary request failed.");
 
@@ -802,23 +870,29 @@
       cursor.className = "cursor";
       content.appendChild(cursor);
 
-      while (true) {
+      let finished = false;
+      while (!finished) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) { dbg("SSE stream done"); break; }
 
         const raw = decoder.decode(value, { stream: true });
+        dbg("SSE chunk received", JSON.stringify(raw.slice(0, 120)));
         const lines = raw.split("\n");
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const payload = line.slice(6);
           if (payload === "[DONE]") {
+            dbg("SSE [DONE] received, accumulated length:", accumulated.length);
             cursor.remove();
+            finished = true;
             break;
           }
           if (payload.startsWith("[ERROR]")) {
+            dbgError("SSE [ERROR]:", payload);
             cursor.remove();
             content.textContent = payload;
+            finished = true;
             break;
           }
           accumulated += payload;
@@ -826,11 +900,13 @@
           content.appendChild(cursor);
         }
       }
+      dbg("Summary render complete. chars:", accumulated.length);
     } catch (err) {
+      dbgError("summarize error", err);
       content.textContent = "Error: " + err.message;
     } finally {
       btn.disabled = false;
-      btn.textContent = "✦ Summarize";
+      btn.innerHTML = '<span class="material-symbols-rounded">auto_awesome</span> Summarize';
     }
   });
 
@@ -899,24 +975,24 @@
       spinner.style.display = "none";
       controls.style.display = "flex";
       audioEl.play();
-      playBtn.textContent = "⏸";
+      playBtn.innerHTML = '<span class="material-symbols-rounded">pause</span>';
     } catch (err) {
       spinner.style.display = "none";
       sec.style.display = "none";
       showError("TTS error: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = "🔊 Listen";
+      btn.innerHTML = '<span class="material-symbols-rounded">headphones</span> Listen';
     }
   });
 
   playBtn.addEventListener("click", () => {
     if (audioEl.paused) {
       audioEl.play();
-      playBtn.textContent = "⏸";
+      playBtn.innerHTML = '<span class="material-symbols-rounded">pause</span>';
     } else {
       audioEl.pause();
-      playBtn.textContent = "▶";
+      playBtn.innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
     }
   });
 
