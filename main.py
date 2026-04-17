@@ -1,12 +1,18 @@
 import asyncio
 import os
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
+load_dotenv(".local.env", override=True)
 
 from reader import fetch_article
 from summarize import stream_summary
+import summarize as summarize_module
 from tts import generate_audio, hash_url, is_cached
 
 app = FastAPI(title="Distillery")
@@ -27,9 +33,42 @@ class TTSRequest(BaseModel):
     url_hash: str
 
 
+class ModelRequest(BaseModel):
+    model: str
+
+
 @app.get("/")
 async def index():
     return FileResponse("static/index.html")
+
+
+@app.get("/models")
+async def list_models():
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not set.")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://openrouter.ai/api/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=10,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch models from OpenRouter.")
+    data = resp.json()
+    models = sorted(
+        [{"id": m["id"], "name": m.get("name", m["id"])} for m in data.get("data", [])],
+        key=lambda m: m["name"].lower(),
+    )
+    return {"models": models, "current": summarize_module.OPENROUTER_MODEL}
+
+
+@app.post("/settings/model")
+async def set_model(req: ModelRequest):
+    if not req.model or not req.model.strip():
+        raise HTTPException(status_code=400, detail="Model ID is required.")
+    summarize_module.OPENROUTER_MODEL = req.model.strip()
+    return {"model": summarize_module.OPENROUTER_MODEL}
 
 
 @app.post("/fetch")
