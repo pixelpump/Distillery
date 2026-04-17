@@ -542,11 +542,24 @@
 <audio id="audio-el" preload="auto"></audio>
 
 <script>
+  // ── Debug logger ───────────────────────────────────────────────────────────
+  function dbg(label, ...args) {
+    console.log(`%c[Distillery] ${label}`, "color:#52b788;font-weight:bold", ...args);
+  }
+  function dbgWarn(label, ...args) {
+    console.warn(`[Distillery] ${label}`, ...args);
+  }
+  function dbgError(label, ...args) {
+    console.error(`[Distillery] ${label}`, ...args);
+  }
+
   // ── State ──────────────────────────────────────────────────────────────────
   let currentArticle = null;
   let currentUrlHash = null;
   let fontSize = 18;
   const MIN_FONT = 14, MAX_FONT = 28;
+
+  dbg("Script loaded. DOM ready state:", document.readyState);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
   const root = document.documentElement;
@@ -555,11 +568,13 @@
   (function initTheme() {
     const saved = localStorage.getItem("distillery-theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    dbg("initTheme", { saved, prefersDark });
     if (saved === "dark" || (!saved && prefersDark)) setTheme("dark");
     else setTheme("light");
   })();
 
   function setTheme(t) {
+    dbg("setTheme →", t);
     root.dataset.theme = t;
     themeBtn.textContent = t === "dark" ? "☀️" : "🌙";
     localStorage.setItem("distillery-theme", t);
@@ -602,43 +617,65 @@
   }
 
   async function loadArticle(url) {
-    if (!url) return;
+    if (!url) { dbgWarn("loadArticle called with empty URL"); return; }
 
+    dbg("loadArticle start", url);
     showLoading();
     hideError();
 
     try {
+      dbg("POST /fetch →", url);
       const res = await fetch("/fetch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
+      dbg("POST /fetch response", { status: res.status, ok: res.ok, contentType: res.headers.get("content-type") });
+
       const data = await res.json();
+      dbg("POST /fetch data", {
+        title: data.title,
+        author: data.author,
+        date: data.date,
+        word_count: data.word_count,
+        text_length: data.text ? data.text.length : 0,
+        text_preview: data.text ? data.text.slice(0, 120) : "(empty)",
+        detail: data.detail,
+      });
+
       if (!res.ok) throw new Error(data.detail || "Failed to fetch article.");
 
       currentArticle = data;
       currentUrlHash = await computeUrlHash(url);
+      dbg("url hash computed", currentUrlHash);
 
       document.getElementById("url-input").value = url;
       document.getElementById("home-url-input").value = url;
 
       renderArticle(data);
     } catch (err) {
+      dbgError("loadArticle error", err);
       showError(err.message);
       showHome();
     }
   }
 
   function renderArticle(data) {
-    document.getElementById("article-title").textContent = data.title;
+    dbg("renderArticle start", { title: data.title, word_count: data.word_count });
+
+    const titleEl = document.getElementById("article-title");
+    titleEl.textContent = data.title;
+    dbg("title set →", titleEl.textContent);
 
     const authorEl = document.getElementById("byline-author");
     authorEl.textContent = data.author ? "By " + data.author : "";
     authorEl.style.display = data.author ? "" : "none";
+    dbg("author →", data.author);
 
     const dateEl = document.getElementById("byline-date");
     dateEl.textContent = data.date || "";
     dateEl.style.display = data.date ? "" : "none";
+    dbg("date →", data.date);
 
     const readMins = Math.max(1, Math.round(data.word_count / 200));
     document.getElementById("byline-readtime").textContent =
@@ -646,43 +683,55 @@
 
     const bodyEl = document.getElementById("article-body");
     bodyEl.innerHTML = "";
-    data.text.split(/\n\n+/).forEach(para => {
+    const paragraphs = data.text.split(/\n\n+/);
+    dbg("paragraphs found", paragraphs.length);
+    let rendered = 0;
+    paragraphs.forEach(para => {
       if (!para.trim()) return;
       const p = document.createElement("p");
       p.textContent = para.trim();
       bodyEl.appendChild(p);
+      rendered++;
     });
+    dbg("paragraphs rendered", rendered);
 
-    // Reset summary & audio
     resetSummary();
     resetAudio();
 
+    dbg("calling showArticle()");
     showArticle();
+    dbg("showArticle() done — #article-view display:", document.getElementById("article-view").style.display);
   }
 
   // ── View helpers ───────────────────────────────────────────────────────────
   function showHome() {
-    document.getElementById("home-screen").style.display = "";
+    dbg("showHome()");
+    document.getElementById("home-screen").style.display = "flex";
     document.getElementById("loading-view").style.display = "none";
     document.getElementById("article-view").style.display = "none";
   }
 
   function showLoading() {
+    dbg("showLoading()");
     document.getElementById("home-screen").style.display = "none";
-    document.getElementById("loading-view").style.display = "";
+    document.getElementById("loading-view").style.display = "block";
     document.getElementById("article-view").style.display = "none";
   }
 
   function showArticle() {
+    dbg("showArticle() — setting #article-view to display:block");
     document.getElementById("home-screen").style.display = "none";
     document.getElementById("loading-view").style.display = "none";
-    document.getElementById("article-view").style.display = "";
+    document.getElementById("article-view").style.display = "block";
+    dbg("showArticle() — #article-view computed display:",
+      getComputedStyle(document.getElementById("article-view")).display);
   }
 
   function showError(msg) {
+    dbgError("showError:", msg);
     const el = document.getElementById("error-banner");
     el.textContent = "⚠ " + msg;
-    el.style.display = "";
+    el.style.display = "block";
   }
 
   function hideError() {
@@ -692,23 +741,29 @@
   // ── Form submit handlers ───────────────────────────────────────────────────
   document.getElementById("url-form").addEventListener("submit", () => {
     const url = document.getElementById("url-input").value.trim();
+    dbg("url-form submit →", url);
     if (url) loadArticle(url);
   });
 
   document.getElementById("home-url-form").addEventListener("submit", () => {
     const url = document.getElementById("home-url-input").value.trim();
+    dbg("home-url-form submit →", url);
     if (url) loadArticle(url);
   });
 
   document.getElementById("fetch-btn-top").addEventListener("click", () => {
     const url = document.getElementById("url-input").value.trim();
+    dbg("fetch-btn-top click →", url);
     if (url) loadArticle(url);
   });
 
   document.getElementById("fetch-btn-home").addEventListener("click", () => {
     const url = document.getElementById("home-url-input").value.trim();
+    dbg("fetch-btn-home click →", url);
     if (url) loadArticle(url);
   });
+
+  dbg("All event listeners attached.");
 
   // ── Summary ────────────────────────────────────────────────────────────────
   function resetSummary() {

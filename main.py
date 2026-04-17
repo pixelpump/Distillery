@@ -34,8 +34,9 @@ async def index():
 
 @app.post("/fetch")
 async def fetch(req: FetchRequest):
+    loop = asyncio.get_event_loop()
     try:
-        article = fetch_article(req.url)
+        article = await loop.run_in_executor(None, fetch_article, req.url)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:

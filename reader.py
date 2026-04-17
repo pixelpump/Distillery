@@ -27,7 +27,6 @@ def fetch_article(url: str) -> Article:
         include_tables=True,
         no_fallback=False,
         output_format="txt",
-        with_metadata=True,
         config=config,
     )
 
