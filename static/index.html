@@ -261,9 +261,10 @@
     .spinner-label {
       font-size: 14px;
       color: var(--text-muted);
+      transition: opacity 0.4s ease;
     }
 
-    /* ── Error Banner ── */
+    /* ── Error Banner (article view) ── */
     #error-banner {
       display: none;
       background: #fef2f2;
@@ -279,6 +280,42 @@
       border-color: #7f1d1d;
       color: #fca5a5;
     }
+
+    /* ── Home Error Card ── */
+    #home-error {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      max-width: 480px;
+      width: 100%;
+      text-align: left;
+    }
+    [data-theme="dark"] #home-error {
+      background: #2d1515;
+      border-color: #7f1d1d;
+    }
+    #home-error .home-error-title {
+      font-size: 13px;
+      font-weight: 400;
+      color: #b91c1c;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+    [data-theme="dark"] #home-error .home-error-title { color: #fca5a5; }
+    #home-error .home-error-detail {
+      font-size: 12px;
+      color: #b91c1c;
+      opacity: 0.8;
+      width: 100%;
+    }
+    [data-theme="dark"] #home-error .home-error-detail { color: #fca5a5; }
 
     /* ── Article View ── */
     #article-view { display: none; }
@@ -342,10 +379,52 @@
     }
 
     #summary-content {
-      font-size: 15px;
-      line-height: 1.7;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.75;
       color: var(--text);
       white-space: pre-wrap;
+    }
+
+    #summary-content ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    #summary-content li {
+      position: relative;
+      padding-left: 1.5em;
+      margin-bottom: 0.9em;
+    }
+
+    #summary-content li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+
+    #summary-content strong {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    #summary-content em {
+      font-style: italic;
+    }
+
+    #summary-content p {
+      margin-bottom: 0.9em;
+    }
+
+    #summary-content p:last-child {
+      margin-bottom: 0;
     }
 
     #summary-content .cursor {
@@ -478,6 +557,128 @@
       line-height: 1;
     }
 
+    /* ── Onboarding Modal ── */
+    #onboarding-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(3px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    #onboarding-overlay.open {
+      display: flex;
+    }
+
+    #onboarding-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      width: 100%;
+      max-width: 460px;
+      margin: 16px;
+      overflow: hidden;
+      animation: onboarding-slide-in 0.3s ease-out;
+    }
+
+    @keyframes onboarding-slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    #onboarding-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px 12px;
+    }
+
+    #onboarding-title {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+
+    #onboarding-body {
+      padding: 12px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .onboarding-intro {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .onboarding-section {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .onboarding-section .material-symbols-rounded {
+      font-size: 24px;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .onboarding-section > div {
+      flex: 1;
+    }
+
+    .onboarding-section strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .onboarding-section p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .onboarding-section a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .onboarding-section a:hover {
+      color: var(--accent-hover);
+    }
+
+    #onboarding-footer {
+      display: flex;
+      justify-content: center;
+      padding: 0 24px 24px;
+    }
+
+    #onboarding-footer .btn {
+      min-width: 120px;
+      justify-content: center;
+    }
+
     /* ── Settings Modal ── */
     #settings-overlay {
       display: none;
@@ -563,6 +764,21 @@
     }
     .settings-select:focus { border-color: var(--accent); }
 
+    .settings-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 200;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .settings-input:focus { border-color: var(--accent); }
+
     .settings-hint {
       font-size: 12px;
       color: var(--text-faint);
@@ -613,14 +829,79 @@
     </div>
     <div id="settings-body">
       <div class="settings-section">
+        <label class="settings-label" for="api-key-input">OpenRouter API Key</label>
+        <div class="settings-row">
+          <input type="password" id="api-key-input" class="settings-input" placeholder="sk-or-v1-..." autocomplete="off">
+          <button class="btn btn-primary" id="save-api-key-btn" type="button">Save</button>
+        </div>
+        <p class="settings-hint" id="api-key-hint">
+          <strong>Stored in your browser only.</strong> Your key never touches our server. 
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get a key →</a>
+        </p>
+      </div>
+      
+      <div class="settings-section">
         <label class="settings-label" for="model-select">AI Model</label>
         <div class="settings-row">
           <select id="model-select" class="settings-select">
-            <option value="">Loading models…</option>
+            <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (Free)</option>
+            <option value="meta-llama/llama-3.1-8b-instruct">Meta Llama 3.1 8B (Cheap)</option>
+            <option value="mistralai/mistral-7b-instruct">Mistral 7B Instruct (Cheap)</option>
           </select>
         </div>
-        <p class="settings-hint" id="model-hint">Changes take effect on the next summary.</p>
+        <p class="settings-hint" id="model-hint">Free models marked with (Free). You pay for others via your API key.</p>
       </div>
+
+      <div class="settings-section">
+        <label class="settings-label">Browser Extension</label>
+        <div class="settings-row">
+          <button class="btn btn-ghost" id="check-extension-btn" type="button">
+            <span class="material-symbols-rounded">extension</span> Check Status
+          </button>
+          <button class="btn btn-primary" id="install-extension-btn" type="button">
+            <span class="material-symbols-rounded">download</span> Download
+          </button>
+        </div>
+        <p class="settings-hint" id="extension-hint">Send articles to Distillery via right-click. Extension runs locally.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING MODAL -->
+<div id="onboarding-overlay" aria-modal="true" role="dialog" aria-label="Welcome to Distillery">
+  <div id="onboarding-modal">
+    <div id="onboarding-header">
+      <span id="onboarding-title">Welcome to Distillery</span>
+    </div>
+    <div id="onboarding-body">
+      <p class="onboarding-intro">
+        Distillery provides a clean, distraction-free reading experience for articles.
+      </p>
+      <div class="onboarding-section">
+        <span class="material-symbols-rounded">auto_awesome</span>
+        <div>
+          <strong>AI Summaries (Client-Side)</strong>
+          <p>To use AI summaries, add your <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">OpenRouter API key</a>. <strong>Your key stays in your browser</strong> — we never see it. Summaries are generated directly between your browser and OpenRouter.</p>
+        </div>
+      </div>
+      <div class="onboarding-section">
+        <span class="material-symbols-rounded">settings</span>
+        <div>
+          <strong>Setup</strong>
+          <p>Click the <span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">settings</span> button in the top right to add your API key and choose your preferred AI model.</p>
+        </div>
+      </div>
+      <div class="onboarding-section">
+        <span class="material-symbols-rounded">extension</span>
+        <div>
+          <strong>Browser Extension</strong>
+          <p>Download our Chrome extension to send articles directly from your browser with a right-click.</p>
+        </div>
+      </div>
+    </div>
+    <div id="onboarding-footer">
+      <button class="btn btn-primary" id="onboarding-dismiss" type="button">Got it</button>
     </div>
   </div>
 </div>
@@ -637,17 +918,21 @@
       <input id="home-url-input" type="url" placeholder="https://example.com/article" autocomplete="off" />
       <button class="btn btn-primary btn-arrow" id="fetch-btn-home" type="submit"><span class="material-symbols-rounded">arrow_forward</span></button>
     </form>
+    <div id="home-error">
+      <div class="home-error-title"><span class="material-symbols-rounded" style="font-size:16px;">error</span><span id="home-error-title-text"></span></div>
+      <div class="home-error-detail" id="home-error-detail"></div>
+    </div>
   </div>
 
   <!-- LOADING -->
   <div id="loading-view" style="display:none;">
     <div class="spinner-wrap">
       <div class="spinner"></div>
-      <span class="spinner-label">Fetching article…</span>
+      <span class="spinner-label" id="spinner-label">Fetching article…</span>
     </div>
   </div>
 
-  <!-- ERROR -->
+  <!-- ERROR (article/tts context) -->
   <div id="error-banner"></div>
 
   <!-- ARTICLE -->
@@ -672,7 +957,7 @@
 
     <!-- SUMMARY -->
     <div id="summary-section">
-      <h3>AI Summary</h3>
+      <h3>Distilled:</h3>
       <div id="summary-content"></div>
     </div>
 
@@ -816,6 +1101,7 @@
     dbg("loadArticle start", url);
     showLoading();
     hideError();
+    hideHomeError();
 
     try {
       dbg("POST /fetch →", url);
@@ -849,8 +1135,8 @@
       renderArticle(data);
     } catch (err) {
       dbgError("loadArticle error", err);
-      showError(err.message);
       showHome();
+      showHomeError(err.message, url);
     }
   }
 
@@ -900,6 +1186,7 @@
   // ── View helpers ───────────────────────────────────────────────────────────
   function showHome() {
     dbg("showHome()");
+    stopSpinnerCycle();
     document.getElementById("home-screen").style.display = "flex";
     document.getElementById("loading-view").style.display = "none";
     document.getElementById("article-view").style.display = "none";
@@ -910,10 +1197,12 @@
     document.getElementById("home-screen").style.display = "none";
     document.getElementById("loading-view").style.display = "block";
     document.getElementById("article-view").style.display = "none";
+    startSpinnerCycle();
   }
 
   function showArticle() {
     dbg("showArticle() — setting #article-view to display:block");
+    stopSpinnerCycle();
     document.getElementById("home-screen").style.display = "none";
     document.getElementById("loading-view").style.display = "none";
     document.getElementById("article-view").style.display = "block";
@@ -932,6 +1221,53 @@
     document.getElementById("error-banner").style.display = "none";
   }
 
+  function showHomeError(raw, url) {
+    const card = document.getElementById("home-error");
+    const titleEl = document.getElementById("home-error-title-text");
+    const detailEl = document.getElementById("home-error-detail");
+
+    let title = "Couldn't load article";
+    let detail = raw || "An unexpected error occurred. Please try again.";
+
+    const lower = (raw || "").toLowerCase();
+    if ((url || "").toLowerCase().includes("nytimes.com")) {
+      title = "Blocked by The New York Times";
+      detail = "Apparently, the NYTimes really doesn't want you to read that for free. Our best efforts seem to have failed. We're working on a workaround though.";
+    } else if ((url || "").toLowerCase().includes("wsj.com")) {
+      title = "Blocked by The Wall Street Journal";
+      detail = "The WSJ is guarding that one behind a hard paywall. Our best efforts seem to have failed. We're working on a workaround though.";
+    } else if (lower.includes("no article content") || lower.includes("no text") || lower.includes("empty")) {
+      title = "No readable content found";
+      detail = "The page doesn't appear to contain an article. Try a different URL.";
+    } else if (lower.includes("invalid url") || lower.includes("url") || lower.includes("scheme")) {
+      title = "Invalid URL";
+      detail = "Please enter a full URL including https://.";
+    } else if (lower.includes("timeout") || lower.includes("timed out")) {
+      title = "Request timed out";
+      detail = "The page took too long to respond. Check your connection and try again.";
+    } else if (lower.includes("403") || lower.includes("forbidden") || lower.includes("access denied")) {
+      title = "Access denied";
+      detail = "This page is blocking automated access. Try a different source.";
+    } else if (lower.includes("404") || lower.includes("not found")) {
+      title = "Page not found";
+      detail = "The URL returned a 404. Double-check the link and try again.";
+    } else if (lower.includes("paywall") || lower.includes("subscribe") || lower.includes("premium")) {
+      title = "Paywalled content";
+      detail = "This article may be behind a paywall and couldn't be extracted.";
+    } else if (lower.includes("500") || lower.includes("unexpected error")) {
+      title = "Server error";
+      detail = "Something went wrong on our end. Please try again in a moment.";
+    }
+
+    titleEl.textContent = title;
+    detailEl.textContent = detail;
+    card.style.display = "flex";
+  }
+
+  function hideHomeError() {
+    document.getElementById("home-error").style.display = "none";
+  }
+
   // ── Form submit handlers ───────────────────────────────────────────────────
   document.getElementById("url-form").addEventListener("submit", () => {
     const url = document.getElementById("url-input").value.trim();
@@ -945,8 +1281,47 @@
     if (url) loadArticle(url);
   });
 
+  document.getElementById("url-input").addEventListener("click", (e) => {
+    e.target.select();
+  });
 
   dbg("All event listeners attached.");
+
+  // ── Cycling spinner label ──────────────────────────────────────────────────
+  const spinnerMessages = [
+    "Kick Starting the engines — warming up the system",
+    "Finding the right gear — excuse the grinding noises",
+    "Herding the pixels — rounding up all the good ones",
+    "Convincing the hamsters to run faster — almost there",
+    "Untangling the internet — bear with us",
+    "Bribing the servers with coffee — they're perking up",
+    "Counting to a very large number — nearly done",
+    "Asking the cloud nicely — it's considering your request",
+    "Polishing the bits and bytes — making everything shine",
+    "Teaching robots to dance — they're not very good yet",
+  ];
+  let spinnerCycleInterval = null;
+
+  function startSpinnerCycle() {
+    const label = document.getElementById('spinner-label');
+    let idx = 0;
+    label.textContent = spinnerMessages[idx];
+    spinnerCycleInterval = setInterval(() => {
+      label.style.opacity = '0';
+      setTimeout(() => {
+        idx = (idx + 1) % spinnerMessages.length;
+        label.textContent = spinnerMessages[idx];
+        label.style.opacity = '1';
+      }, 400);
+    }, 3000);
+  }
+
+  function stopSpinnerCycle() {
+    if (spinnerCycleInterval) { clearInterval(spinnerCycleInterval); spinnerCycleInterval = null; }
+    const label = document.getElementById('spinner-label');
+    label.style.opacity = '1';
+    label.textContent = 'Fetching article…';
+  }
 
   // ── Summary ────────────────────────────────────────────────────────────────
   function resetSummary() {
@@ -955,12 +1330,72 @@
     document.getElementById("summary-content").textContent = "";
   }
 
+  function formatSummaryToHTML(text) {
+    // First, convert markdown bold **text** to <strong>text</strong>
+    let processed = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Split on asterisk bullets that may be run together: "*   Point 1 *   Point 2"
+    processed = processed.replace(/\*\s{2,}/g, '\n* ');
+
+    // Split on lowercase-to-uppercase transitions (new sentences starting with caps mid-stream)
+    // This catches: "...federal government. Minister's willingness..." -> separate points
+    processed = processed.replace(/\.\s+([A-Z][a-z])/g, '.\n\n$1');
+
+    // Split on colons that appear to be headers followed by capital letters
+    processed = processed.replace(/:\s+([A-Z])/g, ':\n\n$1');
+
+    // Split into lines and identify bullet points
+    const lines = processed.split('\n');
+    let html = '';
+    let inList = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // Match bullet points: -, *, • followed by space
+      const bulletMatch = trimmed.match(/^([-*•]\s+)(.+)$/);
+      // Match lines starting with <strong> (treat as bullet items)
+      const strongHeaderMatch = trimmed.match(/^(<strong>.+?<\/strong>:?\s*)(.+)$/);
+
+      if (bulletMatch || strongHeaderMatch) {
+        if (!inList) {
+          html += '<ul>';
+          inList = true;
+        }
+        const content = bulletMatch ? bulletMatch[2] : trimmed;
+        html += `<li>${content}</li>`;
+      } else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        html += `<p>${trimmed}</p>`;
+      }
+    }
+
+    if (inList) {
+      html += '</ul>';
+    }
+
+    return html || processed;
+  }
+
   document.getElementById("summarize-btn").addEventListener("click", async () => {
     if (!currentArticle) return;
+    
+    // Check for API key
+    const apiKey = getStoredApiKey();
+    if (!apiKey) {
+      showError("Please add your OpenRouter API key in Settings to use summarization.");
+      openSettings();
+      return;
+    }
 
     const btn = document.getElementById("summarize-btn");
     const sec = document.getElementById("summary-section");
     const content = document.getElementById("summary-content");
+    const model = getStoredModel();
 
     btn.disabled = true;
     btn.textContent = "Summarizing…";
@@ -968,59 +1403,88 @@
     content.innerHTML = '<span class="cursor"></span>';
 
     try {
-      dbg("POST /summarize →", currentArticle.text.length, "chars");
-      const res = await fetch("/summarize", {
+      dbg("Calling OpenRouter directly for summarization", { model, textLength: currentArticle.text.length });
+      
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: currentArticle.text }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "Distillery"
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: "system",
+              content: "Summarize the following article in a few concise bullet points. Be direct, no preamble. Pay attention to typography and formatting. The text formatting returned should be compatible with simple HTML. Leave plenty of whitespace."
+            },
+            {
+              role: "user",
+              content: currentArticle.text
+            }
+          ],
+          stream: true
+        })
       });
-      dbg("POST /summarize response", { status: res.status, ok: res.ok });
 
-      if (!res.ok) throw new Error("Summary request failed.");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.error?.message || `HTTP ${response.status}`;
+        if (response.status === 401) {
+          throw new Error("Invalid API key. Please check your OpenRouter key in Settings.");
+        }
+        throw new Error(`OpenRouter error: ${errorMsg}`);
+      }
 
-      const reader = res.body.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
-
-      content.innerHTML = "";
-      const cursor = document.createElement("span");
-      cursor.className = "cursor";
-      content.appendChild(cursor);
-
       let finished = false;
+
       while (!finished) {
         const { done, value } = await reader.read();
-        if (done) { dbg("SSE stream done"); break; }
+        if (done) { dbg("OpenRouter stream done"); break; }
 
         const raw = decoder.decode(value, { stream: true });
-        dbg("SSE chunk received", JSON.stringify(raw.slice(0, 120)));
         const lines = raw.split("\n");
 
         for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6);
-          if (payload === "[DONE]") {
-            dbg("SSE [DONE] received, accumulated length:", accumulated.length);
-            cursor.remove();
+          if (!line.trim() || !line.startsWith("data: ")) continue;
+          
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") {
+            dbg("OpenRouter [DONE] received, accumulated length:", accumulated.length);
+            content.innerHTML = formatSummaryToHTML(accumulated);
             finished = true;
             break;
           }
-          if (payload.startsWith("[ERROR]")) {
-            dbgError("SSE [ERROR]:", payload);
-            cursor.remove();
-            content.textContent = payload;
-            finished = true;
-            break;
+
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              accumulated += delta;
+              // During streaming, use plain text for performance
+              content.textContent = accumulated + "▋";
+            }
+          } catch (e) {
+            // Ignore parse errors for incomplete chunks
           }
-          accumulated += payload;
-          content.textContent = accumulated;
-          content.appendChild(cursor);
         }
       }
+      
+      // Final render
+      content.innerHTML = formatSummaryToHTML(accumulated);
       dbg("Summary render complete. chars:", accumulated.length);
+      
     } catch (err) {
       dbgError("summarize error", err);
       content.textContent = "Error: " + err.message;
+      if (err.message.includes("API key")) {
+        content.innerHTML += '<br><br><button class="btn btn-ghost" onclick="openSettings()">Open Settings</button>';
+      }
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<span class="material-symbols-rounded">auto_awesome</span> Summarize';
@@ -1145,6 +1609,9 @@
   const settingsClose = document.getElementById("settings-close");
   const modelSelect = document.getElementById("model-select");
   const modelHint = document.getElementById("model-hint");
+  const apiKeyInput = document.getElementById("api-key-input");
+  const saveApiKeyBtn = document.getElementById("save-api-key-btn");
+  const apiKeyHint = document.getElementById("api-key-hint");
 
   let modelsLoaded = false;
 
@@ -1152,6 +1619,7 @@
     settingsOverlay.classList.add("open");
     document.body.style.overflow = "hidden";
     if (!modelsLoaded) loadModels();
+    loadApiKey(); // Load API key when opening settings
   }
 
   function closeSettings() {
@@ -1168,65 +1636,184 @@
     if (e.key === "Escape") closeSettings();
   });
 
+  // ── API Key Management (Client-Side Only) ───────────────────────────────────
+  const API_KEY_STORAGE_KEY = "distillery-openrouter-key";
+  const MODEL_STORAGE_KEY = "distillery-openrouter-model";
+  
+  function getStoredApiKey() {
+    return localStorage.getItem(API_KEY_STORAGE_KEY) || "";
+  }
+  
+  function setStoredApiKey(key) {
+    localStorage.setItem(API_KEY_STORAGE_KEY, key);
+  }
+  
+  function getStoredModel() {
+    return localStorage.getItem(MODEL_STORAGE_KEY) || "google/gemini-2.0-flash-001";
+  }
+  
+  function setStoredModel(model) {
+    localStorage.setItem(MODEL_STORAGE_KEY, model);
+  }
+
+  async function loadApiKey() {
+    // Load from localStorage only - server never stores the key
+    const storedKey = getStoredApiKey();
+    if (storedKey) {
+      // Show masked version
+      const masked = storedKey.slice(0, 8) + "*" * (storedKey.length - 12) + storedKey.slice(-4);
+      apiKeyInput.value = masked;
+      apiKeyHint.innerHTML = '<strong>✓ API key stored in browser.</strong> Your key never leaves your device.';
+      apiKeyHint.className = "settings-hint success";
+    } else {
+      apiKeyHint.innerHTML = '<strong>No API key set.</strong> <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get a free key from OpenRouter →</a>';
+      apiKeyHint.className = "settings-hint";
+    }
+    
+    // Load saved model
+    const savedModel = getStoredModel();
+    modelSelect.value = savedModel;
+  }
+
+  function saveApiKey() {
+    const apiKey = apiKeyInput.value.trim();
+    
+    if (!apiKey) {
+      // Clear stored key
+      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      apiKeyHint.textContent = "API key cleared.";
+      apiKeyHint.className = "settings-hint";
+      return;
+    }
+    
+    // Basic validation
+    if (!apiKey.startsWith("sk-or-")) {
+      apiKeyHint.textContent = "Invalid format. OpenRouter keys start with 'sk-or-'";
+      apiKeyHint.className = "settings-hint error";
+      return;
+    }
+
+    // Store in localStorage (client-side only)
+    setStoredApiKey(apiKey);
+    apiKeyHint.innerHTML = '<strong>✓ API key saved to browser storage.</strong> Ready to use.';
+    apiKeyHint.className = "settings-hint success";
+    
+    // Update input to show masked version
+    const masked = apiKey.slice(0, 8) + "*" * (apiKey.length - 12) + apiKey.slice(-4);
+    apiKeyInput.value = masked;
+    
+    dbg("API key saved to localStorage (client-side only)");
+  }
+  
+  // Handle input focus - clear masked value so user can enter new key
+  apiKeyInput.addEventListener("focus", () => {
+    const storedKey = getStoredApiKey();
+    if (storedKey && apiKeyInput.value.includes("*")) {
+      apiKeyInput.value = "";
+    }
+  });
+
+  saveApiKeyBtn.addEventListener("click", saveApiKey);
+  apiKeyInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") saveApiKey();
+  });
+  
+  // Save model selection to localStorage
+  modelSelect.addEventListener("change", () => {
+    setStoredModel(modelSelect.value);
+    modelHint.textContent = `✓ Model saved: ${modelSelect.value}`;
+    modelHint.className = "settings-hint success";
+  });
+
   async function loadModels() {
-    modelSelect.innerHTML = '<option value="">Loading…</option>';
-    modelSelect.disabled = true;
-    modelHint.textContent = "Fetching available models…";
-    modelHint.className = "settings-hint";
+    // Models are now static in the dropdown - no need to fetch
+    // Just ensure the saved model is selected
+    const savedModel = getStoredModel();
+    if (savedModel) {
+      modelSelect.value = savedModel;
+    }
+    modelsLoaded = true;
+    modelHint.textContent = "Select a model. Free options available.";
+    dbg("Models initialized (client-side)");
+  }
 
+  // ── Extension Management ─────────────────────────────────────────────────────
+  const extensionHint = document.getElementById("extension-hint");
+  const installExtensionBtn = document.getElementById("install-extension-btn");
+  const checkExtensionBtn = document.getElementById("check-extension-btn");
+
+  async function checkExtensionStatus() {
     try {
-      const res = await fetch("/models");
-      if (!res.ok) throw new Error("Failed to load models.");
-      const data = await res.json();
-
-      modelSelect.innerHTML = "";
-      data.models.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = m.name;
-        if (m.id === data.current) opt.selected = true;
-        modelSelect.appendChild(opt);
+      const res = await fetch("http://localhost:8000/fetch", {
+        method: "OPTIONS",
+        mode: "no-cors"
       });
-
-      modelSelect.disabled = false;
-      modelsLoaded = true;
-      modelHint.textContent = `Active: ${data.current}`;
-      dbg("Models loaded:", data.models.length, "| current:", data.current);
-    } catch (err) {
-      modelSelect.innerHTML = '<option value="">Error loading models</option>';
-      modelHint.textContent = "Could not fetch models from OpenRouter.";
-      modelHint.className = "settings-hint error";
-      dbgError("loadModels error:", err);
+      extensionHint.textContent = "✓ Distillery server is running. Extension ready to install.";
+      extensionHint.className = "settings-hint success";
+    } catch {
+      extensionHint.textContent = "⚠ Distillery server not detected. Start it first.";
+      extensionHint.className = "settings-hint error";
     }
   }
 
-  modelSelect.addEventListener("change", async () => {
-    const selected = modelSelect.value;
-    if (!selected) return;
+  installExtensionBtn.addEventListener("click", () => {
+    // Trigger download
+    window.location.href = '/extension-download';
 
-    modelSelect.disabled = true;
-    modelHint.textContent = "Applying…";
-    modelHint.className = "settings-hint";
-
-    try {
-      const res = await fetch("/settings/model", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: selected }),
-      });
-      if (!res.ok) throw new Error("Failed to update model.");
-      const data = await res.json();
-      modelHint.textContent = `✓ Now using: ${data.model}`;
-      modelHint.className = "settings-hint success";
-      dbg("Model updated to:", data.model);
-    } catch (err) {
-      modelHint.textContent = "Failed to apply model.";
-      modelHint.className = "settings-hint error";
-      dbgError("setModel error:", err);
-    } finally {
-      modelSelect.disabled = false;
-    }
+    extensionHint.innerHTML = `
+      <div style="line-height:1.6">
+        <strong>Download started!</strong><br>
+        1. Unzip the downloaded file<br>
+        2. Go to <code>chrome://extensions/</code><br>
+        3. Enable "Developer mode" (top right)<br>
+        4. Click "Load unpacked"<br>
+        5. Select the unzipped folder
+      </div>
+    `;
+    extensionHint.className = "settings-hint success";
   });
+
+  checkExtensionBtn.addEventListener("click", checkExtensionStatus);
+
+  // Handle URL from browser extension
+  (function handleExtensionUrl() {
+    const hash = window.location.hash;
+    if (hash.startsWith('#url=')) {
+      const url = decodeURIComponent(hash.slice(5));
+      window.location.hash = '';
+      if (url) {
+        dbg('Extension URL received:', url);
+        loadArticle(url);
+      }
+    }
+  })();
+
+  // ── Onboarding Modal ───────────────────────────────────────────────────────
+  const onboardingOverlay = document.getElementById("onboarding-overlay");
+  const onboardingDismiss = document.getElementById("onboarding-dismiss");
+
+  function showOnboarding() {
+    const hasSeenOnboarding = localStorage.getItem("distillery-onboarding-seen");
+    if (!hasSeenOnboarding) {
+      onboardingOverlay.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function dismissOnboarding() {
+    onboardingOverlay.classList.remove("open");
+    document.body.style.overflow = "";
+    localStorage.setItem("distillery-onboarding-seen", "true");
+    dbg("Onboarding dismissed");
+  }
+
+  onboardingDismiss.addEventListener("click", dismissOnboarding);
+  onboardingOverlay.addEventListener("click", (e) => {
+    if (e.target === onboardingOverlay) dismissOnboarding();
+  });
+
+  // Show onboarding on first visit
+  showOnboarding();
 </script>
 </body>
 </html>

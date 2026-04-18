@@ -4,9 +4,12 @@ A local, distraction-free AI article reader with on-device TTS.
 
 ## Features
 
-- **Reader view** — clean article extraction via trafilatura
-- **AI summary** — streamed 5-bullet summary via OpenRouter (Gemini Flash)
+- **Reader view** — clean article extraction via multiple fallback sources (trafilatura, jina.ai, 12ft.io, archive.ph, Wayback Machine)
+- **AI summary** — streamed bullet-point summaries via OpenRouter (client-side, bring your own API key)
 - **Text-to-speech** — full article audio via Kokoro, cached on disk
+- **Chrome extension** — right-click any link to send directly to Distillery
+- **Rate limiting** — TTS limited to 5 requests/minute and 5 articles/hour per IP
+- **Dark mode** — toggle between light and dark themes
 
 ## Setup
 
@@ -20,16 +23,7 @@ pip install -r requirements.txt
 
 > **Kokoro note:** On first use, Kokoro will automatically download its model weights (~300 MB) from Hugging Face. An internet connection is required for this one-time download.
 
-### 2. API key
-
-Copy the example env file and add your [OpenRouter](https://openrouter.ai) API key:
-
-```bash
-cp .env.example .env
-# then edit .env and set OPENROUTER_API_KEY=sk-or-...
-```
-
-### 3. Run the app
+### 2. Run the app
 
 ```bash
 uvicorn main:app --reload --port 8000
@@ -37,31 +31,56 @@ uvicorn main:app --reload --port 8000
 
 Then open [http://localhost:8000](http://localhost:8000) in your browser.
 
+### 3. (Optional) Install Chrome extension
+
+Download the extension as a ZIP and load it in Chrome's developer mode:
+
+```bash
+curl -O http://localhost:8000/extension-download
+```
+
+Or navigate to `chrome://extensions/`, enable Developer mode, click "Load unpacked", and select the `extension/` folder.
+
+### 4. API Key (client-side)
+
+Enter your [OpenRouter](https://openrouter.ai) API key directly in the web interface. Keys are stored in browser `localStorage` — never sent to the server.
+
 ## Project structure
 
 ```
 distillery/
-├── main.py           # FastAPI app + all endpoints
-├── reader.py         # trafilatura extraction logic
-├── summarize.py      # OpenRouter streaming summarization
-├── tts.py            # Kokoro TTS logic + audio cache
-├── audio_cache/      # cached MP3 files (gitignored)
+├── main.py              # FastAPI app + all endpoints
+├── reader.py            # Multi-source article extraction
+├── summarize.py         # OpenRouter streaming logic (client-side now)
+├── tts.py               # Kokoro TTS logic + audio cache
+├── audio_cache/         # cached MP3 files (gitignored)
 ├── static/
-│   └── index.html    # entire frontend (vanilla JS)
-├── .env.example      # env template
+│   └── index.html       # entire frontend (vanilla JS)
+├── extension/
+│   ├── manifest.json    # Chrome extension manifest (v3)
+│   ├── background.js    # Extension service worker
+│   └── icons/           # Extension icons
+├── .local.env           # local overrides (optional)
 └── requirements.txt
 ```
 
 ## API Endpoints
 
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| `POST` | `/fetch` | `{ url }` | `{ title, author, date, text, word_count }` |
-| `POST` | `/summarize` | `{ text }` | `text/event-stream` SSE |
-| `POST` | `/tts` | `{ text, url_hash }` | `audio/mpeg` |
+| Method | Path | Body | Response | Notes |
+|--------|------|------|----------|-------|
+| `GET` | `/` | — | HTML | Serves the web interface |
+| `GET` | `/extension-download` | — | `application/zip` | Download Chrome extension |
+| `POST` | `/fetch` | `{ url }` | `{ title, author, date, text, word_count }` | Article extraction |
+| `GET` | `/models` | — | `{ models, source }` | List available AI models |
+| `POST` | `/tts` | `{ text, url_hash }` | `audio/mpeg` | Generate speech (rate-limited) |
+| `POST` | `/summarize` | `{ text }` | — | **Deprecated** — client-side only now |
+| `POST` | `/settings/api-key` | `{ api_key }` | — | **Deprecated** — keys stored client-side |
 
-## Notes
+## Architecture Notes
 
-- Audio is cached by `url_hash` (SHA-256 of URL, first 16 hex chars). Repeat TTS requests are instant.
-- The AI model can be swapped by changing `OPENROUTER_MODEL` at the top of `summarize.py`.
-- No database, no auth — fully stateless.
+- **Client-side API keys:** OpenRouter API keys are stored in browser `localStorage` and used directly from the frontend. The server never sees your key.
+- **Client-side summarization:** AI summaries are generated directly in the browser using your API key, not proxied through the server.
+- **Audio caching:** TTS audio is cached by `url_hash` (SHA-256 of URL, first 16 hex chars). Repeat requests are instant.
+- **Rate limiting:** TTS endpoints use `slowapi` (5/min) plus additional per-IP limiting (5/hour).
+- **Article extraction:** Uses a cascade of sources: direct fetch → 12ft.io → jina.ai → archive.ph → Wayback Machine → textise dot iitty dot iitty.
+- **No database, no auth:** Fully stateless server. All user state is in the browser.
