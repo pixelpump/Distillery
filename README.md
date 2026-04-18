@@ -5,6 +5,7 @@ A local, distraction-free AI article reader with on-device TTS.
 ## Features
 
 - **Reader view** — clean article extraction via multiple fallback sources (trafilatura, jina.ai, 12ft.io, archive.ph, Wayback Machine)
+- **Paywall bypass** — automatically tries multiple sources to extract content from paywalled articles
 - **AI summary** — streamed bullet-point summaries via OpenRouter (client-side, bring your own API key)
 - **Text-to-speech** — full article audio via Kokoro, cached on disk
 - **Chrome extension** — right-click any link to send directly to Distillery
