@@ -49,12 +49,14 @@ Or visit: http://localhost:8000
 - Paste any URL to extract the article
 - Click **"Summarize"** for AI bullet points (requires [OpenRouter](https://openrouter.ai) API key)
 - Click **"Listen"** for text-to-speech (downloads ~300MB model on first use)
+- Click **"Speed Read"** for RSVP-style rapid reading
 
 ---
 
 ## Features
 
 - **Reader view** — clean extraction from any source
+- **Speed reader** — RSVP-style rapid serial visual presentation
 - **Paywall bypass** — automatic fallback sources (12ft.io, archive.ph, etc.)
 - **AI summaries** — streamed via OpenRouter (client-side, your API key)
 - **On-device TTS** — Kokoro voice synthesis, audio cached locally
