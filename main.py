@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import io
 import zipfile
@@ -19,7 +20,7 @@ load_dotenv()
 load_dotenv(".local.env", override=True)
 
 from reader import fetch_article
-from tts import generate_audio, hash_url, is_cached
+from tts import generate_audio, hash_url, is_cached, is_model_installed, download_model, KOKORO_SIZE_MB
 
 # Rate limiter setup
 limiter = Limiter(key_func=get_remote_address)
@@ -32,8 +33,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Simple in-memory rate limiting for TTS (per IP)
 # Stores: ip -> list of timestamps
 tts_request_log = defaultdict(list)
-TTS_RATE_LIMIT = 5  # requests
+TTS_RATE_LIMIT = 100  # requests
 TTS_RATE_WINDOW = 3600  # 1 hour in seconds
+
+# Progress queues keyed by url_hash
+tts_progress: dict[str, asyncio.Queue] = {}
 
 
 class FetchRequest(BaseModel):
@@ -195,31 +199,128 @@ def check_tts_rate_limit(client_ip: str) -> bool:
     return True
 
 
+# Progress queues keyed by "model-download"
+model_download_progress: dict[str, asyncio.Queue] = {}
+
+
+@app.get("/tts/model-status")
+async def tts_model_status():
+    """Check if Kokoro TTS model weights are installed."""
+    loop = asyncio.get_event_loop()
+    installed = await loop.run_in_executor(None, is_model_installed)
+    return {"installed": installed, "size_mb": KOKORO_SIZE_MB}
+
+
+@app.post("/tts/download-model")
+async def tts_download_model():
+    """Download Kokoro TTS model weights. Streams SSE progress events."""
+    queue: asyncio.Queue = asyncio.Queue()
+    model_download_progress["active"] = queue
+
+    loop = asyncio.get_event_loop()
+
+    def progress_cb(downloaded_mb: float, total_mb: float):
+        pct = round((downloaded_mb / total_mb) * 100) if total_mb else 0
+        loop.call_soon_threadsafe(queue.put_nowait, {
+            "downloaded_mb": round(downloaded_mb, 1),
+            "total_mb": round(total_mb, 1),
+            "pct": pct,
+        })
+
+    async def event_stream():
+        # Start the download in a thread
+        download_task = loop.run_in_executor(None, download_model, progress_cb)
+
+        try:
+            while True:
+                try:
+                    item = await asyncio.wait_for(queue.get(), timeout=1.0)
+                    yield f"data: {json.dumps(item)}\n\n"
+                    if item.get("pct", 0) >= 100:
+                        break
+                except asyncio.TimeoutError:
+                    # Check if download finished without a 100% event
+                    if download_task.done():
+                        yield f"data: {json.dumps({'downloaded_mb': KOKORO_SIZE_MB, 'total_mb': KOKORO_SIZE_MB, 'pct': 100})}\n\n"
+                        break
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        finally:
+            model_download_progress.pop("active", None)
+            # Ensure download completes
+            await download_task
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.get("/tts/progress/{url_hash}")
+async def tts_progress_sse(url_hash: str):
+    """SSE stream of TTS generation progress for a given url_hash."""
+    queue: asyncio.Queue = asyncio.Queue()
+    tts_progress[url_hash] = queue
+
+    async def event_stream():
+        try:
+            while True:
+                item = await asyncio.wait_for(queue.get(), timeout=120)
+                if item is None:
+                    break
+                done, total = item
+                pct = round((done / total) * 100) if total else 100
+                yield f"data: {json.dumps({'done': done, 'total': total, 'pct': pct})}\n\n"
+                if done >= total:
+                    break
+        except asyncio.TimeoutError:
+            pass
+        finally:
+            tts_progress.pop(url_hash, None)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @app.post("/tts")
-@limiter.limit("5/minute")
+@limiter.limit("60/minute")
 async def tts(req: TTSRequest, request: Request):
     """
     Generate TTS audio with rate limiting.
-    Limited to 5 requests per minute per IP, max 5 articles per hour.
+    Limited to 60 requests per minute per IP, max 100 articles per hour.
     """
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text is required.")
-    
+
     # Additional per-IP rate limiting
     client_ip = get_remote_address(request)
     if not check_tts_rate_limit(client_ip):
         raise HTTPException(
-            status_code=429, 
+            status_code=429,
             detail=f"TTS rate limit exceeded. Maximum {TTS_RATE_LIMIT} articles per hour. Please try again later."
         )
 
     url_hash = req.url_hash or hash_url(req.text[:200])
+    loop = asyncio.get_event_loop()
+
+    def progress_cb(done: int, total: int):
+        queue = tts_progress.get(url_hash)
+        if queue:
+            loop.call_soon_threadsafe(queue.put_nowait, (done, total))
 
     try:
-        audio_path = await asyncio.get_event_loop().run_in_executor(
-            None, generate_audio, req.text, url_hash
+        audio_path = await loop.run_in_executor(
+            None, generate_audio, req.text, url_hash, progress_cb
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TTS generation failed: {e}")
+    finally:
+        queue = tts_progress.pop(url_hash, None)
+        if queue:
+            loop.call_soon_threadsafe(queue.put_nowait, None)
 
     return FileResponse(audio_path, media_type="audio/mpeg", filename=f"{url_hash}.mp3")

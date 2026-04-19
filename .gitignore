@@ -13,3 +13,7 @@ audio_cache/*.mp3
 dist/
 build/
 .DS_Store
+src-tauri/target/
+src-tauri/binaries/distillery-server-*
+src-tauri/gen/
+node_modules/

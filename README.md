@@ -12,7 +12,34 @@ A local, distraction-free AI article reader with on-device TTS.
 - **Rate limiting** — TTS limited to 5 requests/minute and 5 articles/hour per IP
 - **Dark mode** — toggle between light and dark themes
 
-## Setup
+## Desktop App (Recommended)
+
+Download the pre-built desktop app — no Python, no terminal required:
+
+- **macOS:** `Distillery_1.0.0_aarch64.dmg` — drag to Applications, double-click to run
+- **Windows:** `Distillery_1.0.0_x64-setup.exe` — run the installer
+- **Linux:** `Distillery_1.0.0_amd64.AppImage` — mark as executable and run
+
+The app opens a native window with the Distillery interface. On first use of "Listen" (TTS), you'll be prompted to download the Kokoro voice model (~300 MB one-time download).
+
+### Building the Desktop App
+
+```bash
+# 1. Build the Python backend sidecar
+source .venv/bin/activate
+pip install pyinstaller
+python3 build_backend.py
+
+# 2. Build the Tauri app
+npm install -g @tauri-apps/cli
+npx tauri build
+```
+
+Output: `src-tauri/target/release/bundle/` contains `.dmg` (macOS), `.msi` (Windows), `.AppImage` (Linux).
+
+---
+
+## Developer Setup
 
 ### 1. Python environment
 
@@ -53,7 +80,9 @@ distillery/
 ├── main.py              # FastAPI app + all endpoints
 ├── reader.py            # Multi-source article extraction
 ├── summarize.py         # OpenRouter streaming logic (client-side now)
-├── tts.py               # Kokoro TTS logic + audio cache
+├── tts.py               # Kokoro TTS logic + audio cache + model management
+├── sidecar_main.py      # Entry point for PyInstaller sidecar build
+├── build_backend.py     # PyInstaller build script for Tauri sidecar
 ├── audio_cache/         # cached MP3 files (gitignored)
 ├── static/
 │   └── index.html       # entire frontend (vanilla JS)
@@ -61,6 +90,12 @@ distillery/
 │   ├── manifest.json    # Chrome extension manifest (v3)
 │   ├── background.js    # Extension service worker
 │   └── icons/           # Extension icons
+├── src-tauri/           # Tauri v2 desktop app shell
+│   ├── src/lib.rs       # Sidecar launch + webview setup
+│   ├── tauri.conf.json  # Tauri config (icons, sidecar, window)
+│   ├── capabilities/    # Tauri permissions
+│   ├── binaries/        # PyInstaller output (gitignored)
+│   └── icons/           # App icons (.icns, .ico, .png)
 ├── .local.env           # local overrides (optional)
 └── requirements.txt
 ```
@@ -74,6 +109,8 @@ distillery/
 | `POST` | `/fetch` | `{ url }` | `{ title, author, date, text, word_count }` | Article extraction |
 | `GET` | `/models` | — | `{ models, source }` | List available AI models |
 | `POST` | `/tts` | `{ text, url_hash }` | `audio/mpeg` | Generate speech (rate-limited) |
+| `GET` | `/tts/model-status` | — | `{ installed, size_mb }` | Check if Kokoro model is downloaded |
+| `POST` | `/tts/download-model` | — | SSE stream | Download Kokoro model with progress |
 | `POST` | `/summarize` | `{ text }` | — | **Deprecated** — client-side only now |
 | `POST` | `/settings/api-key` | `{ api_key }` | — | **Deprecated** — keys stored client-side |
 
