@@ -1,6 +1,12 @@
 # Distillery 🜋
 
-A local, distraction-free AI article reader with on-device text-to-speech.
+**Distillery transforms cluttered web articles into clean, focused reading experiences — then reads them to you.**
+
+No ads. No popups. No paywalls. No cloud subscriptions. Just pure content, distilled.
+
+Distillery is a local, open-source article reader that strips away the noise of the modern web. Paste any URL and get instant, beautifully formatted text. Hit a paywall? Distillery automatically tries multiple fallback sources to extract the content. Want the TL;DR? AI summaries stream directly in your browser using your own API key — we never see it. Prefer to listen? Our on-device text-to-speech generates natural-sounding audio using Kokoro, completely offline after the initial model download. Need to power through a long read? The built-in speed reader presents words one at a time in RSVP format, letting you read at 400+ WPM.
+
+Everything happens on your machine. No tracking. No accounts. No monthly fees. Your reading history stays yours.
 
 ## Quick Start (macOS)
 
