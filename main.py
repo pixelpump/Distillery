@@ -10,6 +10,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -27,6 +28,14 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Distillery")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS for Chrome extension communication
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "GET", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -64,6 +73,11 @@ class ApiKeyRequest(BaseModel):
 @app.get("/")
 async def index():
     return FileResponse("static/index.html")
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "version": "1.0.0"}
 
 
 @app.get("/extension-download")
@@ -292,9 +306,19 @@ async def tts(req: TTSRequest, request: Request):
     """
     Generate TTS audio with rate limiting.
     Limited to 60 requests per minute per IP, max 100 articles per hour.
+    Model must be explicitly downloaded by user first.
     """
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text is required.")
+
+    # Ensure model is installed (prevents accidental auto-download)
+    loop = asyncio.get_event_loop()
+    model_installed = await loop.run_in_executor(None, is_model_installed)
+    if not model_installed:
+        raise HTTPException(
+            status_code=412,
+            detail="TTS model not installed. Please download it first via the web interface."
+        )
 
     # Additional per-IP rate limiting
     client_ip = get_remote_address(request)
@@ -305,7 +329,6 @@ async def tts(req: TTSRequest, request: Request):
         )
 
     url_hash = req.url_hash or hash_url(req.text[:200])
-    loop = asyncio.get_event_loop()
 
     def progress_cb(done: int, total: int):
         queue = tts_progress.get(url_hash)

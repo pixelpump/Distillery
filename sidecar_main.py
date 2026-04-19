@@ -7,10 +7,12 @@ import argparse
 import sys
 import os
 
-# When running as a PyInstaller bundle, the working directory may not be correct.
-# Set it to the directory containing the bundled data files.
+# When running as a PyInstaller bundle, ensure the bundled data directory
+# is both the working directory and on sys.path so modules can be found.
 if getattr(sys, '_MEIPASS', None):
     os.chdir(sys._MEIPASS)
+    if sys._MEIPASS not in sys.path:
+        sys.path.insert(0, sys._MEIPASS)
 
 
 def main():
@@ -19,9 +21,11 @@ def main():
     parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
     args = parser.parse_args()
 
+    # Import app object directly — string imports fail inside PyInstaller bundles
+    from main import app
     import uvicorn
     uvicorn.run(
-        "main:app",
+        app,
         host=args.host,
         port=args.port,
         log_level="info",

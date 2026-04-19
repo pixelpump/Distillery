@@ -1,10 +1,40 @@
-// Default to localhost for development. Users can configure their hosted URL in options.
+// Default ports to try for binary detection
+const DEFAULT_PORTS = [8000, 8001, 8080, 3000];
 let DISTILLERY_URL = 'http://localhost:8000';
 
-// Load saved URL from storage
-chrome.storage.sync.get(['distilleryUrl'], (result) => {
+// Try to auto-detect a running Distillery binary
+async function detectDistilleryBinary() {
+  for (const port of DEFAULT_PORTS) {
+    for (const host of ['localhost', '127.0.0.1']) {
+      const url = `http://${host}:${port}`;
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 500);
+        const response = await fetch(`${url}/health`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (response.ok) {
+          return url;
+        }
+      } catch {
+        // Continue to next port
+      }
+    }
+  }
+  return null;
+}
+
+// Load saved URL or auto-detect binary
+chrome.storage.sync.get(['distilleryUrl'], async (result) => {
   if (result.distilleryUrl) {
     DISTILLERY_URL = result.distilleryUrl;
+  } else {
+    const detected = await detectDistilleryBinary();
+    if (detected) {
+      DISTILLERY_URL = detected;
+      chrome.storage.sync.set({ distilleryUrl: detected, autoDetected: true });
+    }
   }
 });
 

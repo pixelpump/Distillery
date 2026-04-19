@@ -6,7 +6,12 @@ import sys
 import numpy as np
 import soundfile as sf
 
-AUDIO_CACHE_DIR = os.path.join(os.path.dirname(__file__), "audio_cache")
+# When running inside a PyInstaller bundle, __file__ is in a read-only temp dir.
+# Use a writable location under the user's home directory for the audio cache.
+if getattr(sys, '_MEIPASS', None):
+    AUDIO_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".distillery", "audio_cache")
+else:
+    AUDIO_CACHE_DIR = os.path.join(os.path.dirname(__file__), "audio_cache")
 
 KOKORO_REPO_ID = "hexgrad/Kokoro-82M"
 KOKORO_SIZE_MB = 313
