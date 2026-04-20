@@ -1,4 +1,4 @@
-# Distillery 🜋
+# Distillery 
 
 **Distillery transforms cluttered web articles into clean, focused reading experiences — then reads them to you.**
 

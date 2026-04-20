@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distillery - Clean Reading & Listening</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f9f6f1;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --accent: #B1C9BE;
+      --accent-hover: #1b4332;
+      --border: #e0ddd8;
+    }
+
+    [data-theme="dark"] {
+      --bg: #141414;
+      --surface: #1e1e1e;
+      --text: #e8e4dc;
+      --text-muted: #9b9b9b;
+      --accent: #52b788;
+      --accent-hover: #74c69d;
+      --border: #2e2e2e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 200;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    h1 {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .tagline {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 400;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #1a1a1a;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-top: 60px;
+    }
+
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .feature h3 {
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .feature p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .note {
+      margin-top: 60px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .note code {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 12px;
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-hover);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <img src="dlogo.svg" alt="Distillery" class="logo" />
+      <h1>Distillery <span style="font-weight:200">🜋</span></h1>
+      <p class="tagline">Transform cluttered web articles into clean, focused reading experiences — then reads them to you. No ads. No tracking. No cloud.</p>
+      <div class="actions">
+        <a href="https://github.com/pixelpump/Distillery/releases" class="btn btn-primary">Download for macOS</a>
+        <a href="https://github.com/pixelpump/Distillery" class="btn btn-ghost">View on GitHub</a>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">📄</div>
+        <h3>Clean Reading</h3>
+        <p>Strips ads, popups, and clutter from any article. Multiple fallback sources for paywalled content.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🤖</div>
+        <h3>AI Summaries</h3>
+        <p>Stream bullet-point summaries directly in your browser using your own OpenRouter API key.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔊</div>
+        <h3>Text to Speech</h3>
+        <p>On-device neural TTS with Kokoro. Fully offline after initial model download. Natural-sounding audio.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Speed Reader</h3>
+        <p>RSVP-style rapid reading at 400+ WPM. Words displayed one at a time for focused consumption.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Running from source?</strong><br>
+      This app requires a Python backend. Clone the repo and run:<br>
+      <code>pip install -r requirements.txt && uvicorn main:app --port 8000</code>
+    </div>
+
+    <footer>
+      <p>Open source. <a href="https://github.com/pixelpump/Distillery">github.com/pixelpump/Distillery</a></p>
+    </footer>
+  </div>
+</body>
+</html>
