@@ -8,6 +8,9 @@ from urllib.parse import quote
 import sys
 import time
 import errno
+import subprocess
+import json
+import os
 
 
 def safe_print(message: str, file=sys.stderr):
@@ -45,6 +48,7 @@ JINA_SKIP_PATTERNS = [
     r'^section\s*navigation\s*$',
     r'^subscribe\s+for\s*\$?\d+',
     r'^log\s*in\s*$',
+    r'^sign\s*in\s*$',
     r'^advertisement\s*$',
     r'^supported\s*by\s*$',
     r'^\[?image\s*\d+.*\]',
@@ -67,6 +71,30 @@ JINA_SKIP_PATTERNS = [
     r'^today.s\s+paper',
     r'^\[?\s*\]\(',  # Empty markdown links
     r'^\[\s*\]\(https?://',  # Image-only markdown links
+    # CTV News / General news site patterns
+    r'^sections\s*$',
+    r'^news\s+service\s*$',
+    r'^markdown\s+content\s*$',
+    r'^url\s+source\s*:?\s*https?://',
+    r'^published\s+time\s*:',
+    r'^updated\s*:',
+    r'^\!\[image\s*\d*\]',  # Markdown images: ![Image...]
+    r'^\[\!\[image',  # Nested markdown images: [![Image...](...)](...)
+    r'^\[.*logo.*\]\(https?://',  # Logo links with "logo" in text
+    r'^\[local\]\(https?://',
+    r'^\[watch\]\(https?://',
+    r'^\[trade\s+war\]\(https?://',
+    r'^\[in\s+pictures\]\(https?://',
+    r'^\[ctv\s+your\s+morning\]\(https?://',
+    r'^\[shopping\s+trends\]\(https?://',
+    r'^\[ctv\s+news\s+now\]\(https?://',
+    r'^\[the\s+baguette\s+faces',  # Related article previews
+    r'^\[is\s+allergy\s+season',
+    r'^\[climate\s+and\s+environment\]',
+    r'^\*\s*\*\s*\*',  # Horizontal rules: * * *
+    r'^-{3,}',  # Horizontal rules: ---
+    r'^markdown\s+content\s*:?\s*$',  # jina.ai artifact
+    r'^title\s*:\s*',  # Duplicate title prefix from jina.ai
 ]
 
 # Error patterns that indicate jina.ai failed to extract content
@@ -188,18 +216,155 @@ def clean_jina_output(text: str) -> str:
     return '\n\n'.join(cleaned_lines)
 
 
+def extract_with_dom_distiller(html_content: str) -> Optional[Tuple[str, str]]:
+    """Extract content using Chrome DOM Distiller binary. Returns (title, content) or None."""
+    binary_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "binaries", "dom-distiller")
+    
+    if not os.path.exists(binary_path):
+        safe_print(f"[Distillery]   -> DOM Distiller binary not found at {binary_path}")
+        return None
+    
+    try:
+        # Pass HTML via stdin to avoid command line length limits
+        proc = subprocess.run(
+            [binary_path, "-html", html_content],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if proc.returncode != 0:
+            safe_print(f"[Distillery]   -> DOM Distiller failed: {proc.stderr}")
+            return None
+        
+        data = json.loads(proc.stdout)
+        
+        if data.get("error"):
+            safe_print(f"[Distillery]   -> DOM Distiller error: {data['error']}")
+            return None
+        
+        title = data.get("title", "")
+        content = data.get("content", "")
+        
+        if content and len(content.split()) >= 20:
+            # Format output with title if available
+            if title:
+                full_text = f"{title}\n\n{content}"
+            else:
+                full_text = content
+            return (title, full_text)
+        
+        return None
+    except subprocess.TimeoutExpired:
+        safe_print("[Distillery]   -> DOM Distiller timed out")
+        return None
+    except json.JSONDecodeError as e:
+        safe_print(f"[Distillery]   -> DOM Distiller JSON parse error: {e}")
+        return None
+    except Exception as e:
+        safe_print(f"[Distillery]   -> DOM Distiller exception: {e}")
+        return None
+
+
 def fetch_article(url: str) -> Article:
     safe_print(f"[Distillery] Fetching article from: {url}")
     
-    # 1. Try original URL
-    result, metadata = try_extract(url, "original URL")
+    # Fetch original URL
+    html_content = None
+    try:
+        with httpx.Client(timeout=30, follow_redirects=True, headers=HEADERS) as client:
+            resp = client.get(url)
+            resp.raise_for_status()
+            html_content = resp.text
+            safe_print(f"[Distillery]   -> HTTP {resp.status_code}, {len(html_content)} bytes")
+    except Exception as e:
+        safe_print(f"[Distillery]   -> Failed to fetch: {e}")
+    
+    result = None
+    metadata = None
+    
+    # 1. Try trafilatura on original URL
+    trafilatura_result = None
+    trafilatura_metadata = None
+    if html_content:
+        safe_print("[Distillery] Trying trafilatura...")
+        config = use_config()
+        config.set("DEFAULT", "EXTRACTION_TIMEOUT", "30")
+        trafilatura_result = trafilatura.extract(
+            html_content,
+            include_comments=False,
+            include_tables=True,
+            no_fallback=False,
+            output_format="txt",
+            config=config,
+        )
+        if trafilatura_result:
+            word_count = len(trafilatura_result.split())
+            safe_print(f"[Distillery]   -> Trafilatura extracted {word_count} words")
+            trafilatura_metadata = trafilatura.extract_metadata(html_content)
+    
+    # 2. Try Chrome DOM Distiller on the original HTML (fast, local, Chrome Reader Mode parity)
+    # Always run DOM Distiller to compare quality with trafilatura
+    dom_result = None
+    dom_title = None
+    if html_content:
+        safe_print("[Distillery] Trying DOM Distiller (Chrome Reader Mode algorithm)...")
+        dd_result = extract_with_dom_distiller(html_content)
+        if dd_result:
+            dom_title, dom_content = dd_result
+            dom_word_count = len(dom_content.split())
+            safe_print(f"[Distillery]   -> DOM Distiller extracted {dom_word_count} words")
+            dom_result = dom_content
+    
+    # Common shopping/sidebar keywords to detect bad extractions
+    shopping_keywords = ['shopping', 'advent calendar', 'amazon', 'gifts', 'best']
+    
+    # Choose best result: prefer DOM Distiller if it got significantly more content
+    # or if trafilatura result looks like sidebar cruft (short, contains shopping keywords)
+    result = trafilatura_result
+    metadata = trafilatura_metadata
+    
+    if dom_result:
+        dom_words = len(dom_result.split())
+        traf_words = len(trafilatura_result.split()) if trafilatura_result else 0
+        
+        # Prefer DOM Distiller if:
+        # 1. It got significantly more words (20%+ more) AND has minimum viable content
+        # 2. Trafilatura got sidebar content (shopping keywords in short content) AND DOM has minimum content
+        is_traf_sidebar = (traf_words < 300 and trafilatura_result and
+                          any(kw in trafilatura_result.lower() for kw in shopping_keywords))
+        
+        # DOM Distiller needs at least 100 words to be considered a valid alternative
+        dom_is_viable = dom_words >= 100
+        
+        if (dom_is_viable and dom_words > traf_words * 1.2) or (is_traf_sidebar and dom_is_viable) or (traf_words < 100 and dom_is_viable):
+            safe_print(f"[Distillery] Using DOM Distiller result ({dom_words} vs {traf_words} words)")
+            result = dom_result
+            metadata = type('obj', (object,), {'title': dom_title, 'author': None, 'date': None})()
+        else:
+            safe_print(f"[Distillery] Using trafilatura result ({traf_words} vs {dom_words} words)")
 
-    # 2. If failed or very short, try 12ft.io (paywall bypass)
-    if not result or len(result.split()) < 100:
+    # 3. If failed, very short, or detected sidebar content, try 12ft.io (paywall bypass)
+    # Also treat sidebar content as insufficient even if word count > 100
+    is_sidebar = result and len(result.split()) < 300 and any(kw in result.lower() for kw in shopping_keywords)
+    if not result or len(result.split()) < 100 or is_sidebar:
         bypass_url = f"https://12ft.io/{url}"
         result, metadata = try_extract(bypass_url, "12ft.io")
+        # Try DOM Distiller on 12ft result too
+        if result and len(result.split()) >= 100:
+            try:
+                with httpx.Client(timeout=30, follow_redirects=True, headers=HEADERS) as client:
+                    resp = client.get(bypass_url)
+                    if resp.status_code == 200:
+                        dd_result = extract_with_dom_distiller(resp.text)
+                        if dd_result and len(dd_result[1].split()) > len(result.split()) * 0.8:
+                            # DOM Distiller got comparable or better content
+                            title, result = dd_result
+                            metadata = type('obj', (object,), {'title': title, 'author': None, 'date': None})()
+            except Exception:
+                pass
 
-    # 3. Try jina.ai text extraction service (bypasses paywalls)
+    # 4. Try jina.ai text extraction service (bypasses paywalls)
     # Note: jina.ai returns clean text directly, accept even short results (>=20 words)
     jina_success = False
     if not result or len(result.split()) < 100:
@@ -210,7 +375,7 @@ def fetch_article(url: str) -> Article:
             safe_print(f"[Distillery] Using jina.ai result: {len(result.split())} words")
             jina_success = True
 
-    # 4. Try jina.ai with https (only if previous jina failed)
+    # 5. Try jina.ai with https (only if previous jina failed)
     if not result and not jina_success:
         jina_url2 = f"https://r.jina.ai/{url}"
         result, metadata = try_extract(jina_url2, "jina.ai (https)")
@@ -218,37 +383,37 @@ def fetch_article(url: str) -> Article:
             safe_print(f"[Distillery] Using jina.ai (https) result: {len(result.split())} words")
             jina_success = True
 
-    # 5. Try textise dot iitty dot iitty - text extraction service
+    # 6. Try textise dot iitty dot iitty - text extraction service
     if not result:
         textise_url = f"https://r.jina.ai/http://r.jina.ai/http://cc.bingj.com/cache.aspx?d&u={quote(url, safe='')}" 
         result, metadata = try_extract(textise_url, "textise dot iitty dot iitty", delay=0.5)
         if result and not is_jina_error(result):
             safe_print(f"[Distillery] Using textise dot iitty dot iitty result: {len(result.split())} words")
 
-    # 6. Try textise dot iitty dot iitty alt URL
+    # 7. Try textise dot iitty dot iitty alt URL
     if not result:
         textise2_url = f"https://r.jina.ai/http://r.jina.ai/http://r.jina.ai/http://cc.bingj.com/cache.aspx?d&u={quote(url, safe='')}"
         result, metadata = try_extract(textise2_url, "textise dot iitty dot iitty alt", delay=0.5)
         if result and not is_jina_error(result):
             safe_print(f"[Distillery] Using textise dot iitty dot iitty alt result: {len(result.split())} words")
 
-    # 7. Try archive.ph (archive.is mirror) - add delay to avoid rate limiting
+    # 8. Try archive.ph (archive.is mirror) - add delay to avoid rate limiting
     if not result or (not jina_success and len(result.split()) < 100):
         archive_ph_url = f"https://archive.ph/{url}"
         result, metadata = try_extract(archive_ph_url, "archive.ph", delay=1.0)
 
-    # 8. Try archive.today - add delay
+    # 9. Try archive.today - add delay
     if not result or (not jina_success and len(result.split()) < 100):
         archive_today_url = f"https://archive.today/{url}"
         result, metadata = try_extract(archive_today_url, "archive.today", delay=1.0)
 
-    # 9. Try Wayback Machine with different snapshot selectors - add delay
+    # 10. Try Wayback Machine with different snapshot selectors - add delay
     if not result or (not jina_success and len(result.split()) < 100):
         # Try most recent snapshot
         wayback_recent = f"https://web.archive.org/web/99999999999999/{quote(url, safe='')}"
         result, metadata = try_extract(wayback_recent, "Wayback Machine", delay=1.0)
 
-    # 8. If all failed, raise error
+    # If all failed, raise error
     if not result:
         safe_print(f"[Distillery] All sources failed for: {url}")
         raise ValueError(f"Could not download content from URL: {url}")

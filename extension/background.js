@@ -1,6 +1,7 @@
 // Default ports to try for binary detection
 const DEFAULT_PORTS = [8000, 8001, 8080, 3000];
 let DISTILLERY_URL = 'http://localhost:8000';
+let distilleryTabId = null;
 
 // Try to auto-detect a running Distillery binary
 async function detectDistilleryBinary() {
@@ -90,10 +91,24 @@ async function sendToDistillery(info) {
     const data = await response.json();
     console.log('[Distillery] Queued:', data.title);
 
-    // Open Distillery with queue param to show sidebar
-    await chrome.tabs.create({
-      url: `${baseUrl}/#url=${encodeURIComponent(url)}&queue=1`
-    });
+    // Open or reuse Distillery tab
+    const distilleryUrl = `${baseUrl}/#url=${encodeURIComponent(url)}&queue=1`;
+    if (distilleryTabId !== null) {
+      try {
+        await chrome.tabs.get(distilleryTabId);
+        // Tab exists, update URL and focus it
+        await chrome.tabs.update(distilleryTabId, { url: distilleryUrl, active: true });
+        await chrome.windows.update((await chrome.tabs.get(distilleryTabId)).windowId, { focused: true });
+      } catch {
+        // Tab was closed, create new one
+        const tab = await chrome.tabs.create({ url: distilleryUrl });
+        distilleryTabId = tab.id;
+      }
+    } else {
+      // No tab open, create new one
+      const tab = await chrome.tabs.create({ url: distilleryUrl });
+      distilleryTabId = tab.id;
+    }
   } catch (err) {
     console.error('[Distillery] Queue failed:', err);
     const isConnectionError = err.message.includes('fetch') ||
