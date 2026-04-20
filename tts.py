@@ -3,8 +3,18 @@ import io
 import os
 import re
 import sys
+import errno
 import numpy as np
 import soundfile as sf
+
+
+def safe_print(message: str, file=sys.stderr):
+    """Print to stderr, suppressing broken pipe errors."""
+    try:
+        print(message, file=file, flush=True)
+    except (BrokenPipeError, IOError) as e:
+        if e.errno != errno.EPIPE:
+            raise
 
 # When running inside a PyInstaller bundle, __file__ is in a read-only temp dir.
 # Use a writable location under the user's home directory for the audio cache.
@@ -52,12 +62,12 @@ def download_model(progress_cb=None):
                 total_mb = self.total / (1024 * 1024)
                 progress_cb(downloaded_mb, total_mb)
 
-    print(f"[Distillery] Downloading Kokoro model weights...", file=sys.stderr)
+    safe_print("[Distillery] Downloading Kokoro model weights...")
     snapshot_download(
         KOKORO_REPO_ID,
         tqdm_class=_ProgressTqdm,
     )
-    print(f"[Distillery] Kokoro model download complete.", file=sys.stderr)
+    safe_print("[Distillery] Kokoro model download complete.")
 
 
 def _cache_path(url_hash: str) -> str:

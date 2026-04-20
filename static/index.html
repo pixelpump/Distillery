@@ -14,7 +14,7 @@
       --text: #1a1a1a;
       --text-muted: #6b6b6b;
       --text-faint: #9b9b9b;
-      --accent: #2d6a4f;
+      --accent: #B1C9BE;
       --accent-hover: #1b4332;
       --border: #e0ddd8;
       --shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -1138,6 +1138,267 @@
       .speedread-preset-btn { padding: 4px 8px; font-size: 12px; }
     }
 
+    /* ── Reading List Sidebar ── */
+    #sidebar {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      background: var(--bg);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+
+    #sidebar.minimized {
+      width: 48px;
+    }
+
+    #sidebar.minimized #sidebar-header {
+      padding: 12px 8px;
+      justify-content: center;
+    }
+
+    #sidebar.minimized #sidebar-title,
+    #sidebar.minimized #sidebar-clear {
+      display: none;
+    }
+
+    #sidebar.minimized #sidebar-list {
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #sidebar.minimized .sidebar-item {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0;
+      background: transparent !important;
+      position: relative;
+      z-index: 1;
+    }
+
+    #sidebar-bubble {
+      display: none;
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #B1C9BE;
+      pointer-events: none;
+      z-index: 0;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+      opacity: 0;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(0px);
+    }
+
+    #sidebar.minimized #sidebar-bubble {
+      display: block;
+    }
+
+    #sidebar.minimized .sidebar-item-title,
+    #sidebar.minimized .sidebar-item-meta,
+    #sidebar.minimized .sidebar-item-delete {
+      display: none;
+    }
+
+    .sidebar-indicator {
+      display: none;
+    }
+
+    #sidebar.minimized .sidebar-indicator {
+      display: flex;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    #sidebar.minimized .sidebar-item:hover .sidebar-indicator {
+      background: #fff;
+    }
+
+    #sidebar.minimized .sidebar-item.active .sidebar-indicator {
+      background: #fff;
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    #sidebar.minimized .sidebar-empty {
+      display: none;
+    }
+
+    /* Article remains centered - no margin needed for minimized sidebar */
+
+    #sidebar-list {
+      border-right: 1px solid var(--border);
+    }
+
+    #sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #sidebar-title {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #sidebar-count {
+      font-size: 11px;
+      color: var(--text-faint);
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    #sidebar-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    #sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px 36px 12px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-item:hover {
+      background: var(--bg);
+    }
+
+    .sidebar-item.active {
+      background: var(--accent);
+    }
+
+    .sidebar-item.active .sidebar-item-title,
+    .sidebar-item.active .sidebar-item-meta {
+      color: #fff;
+    }
+
+    .sidebar-item-title {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .sidebar-item-meta {
+      font-size: 11px;
+      color: var(--text-faint);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .sidebar-item-delete {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: transparent;
+      color: var(--text-faint);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+      padding: 0;
+    }
+
+    .sidebar-item:hover .sidebar-item-delete {
+      opacity: 1;
+    }
+
+    .sidebar-item-delete:hover {
+      background: rgba(0,0,0,0.1);
+      color: var(--text);
+    }
+
+    .sidebar-item.active .sidebar-item-delete {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .sidebar-item.active .sidebar-item-delete:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .sidebar-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-faint);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── Sidebar Toggle Button ── */
+    #sidebar-toggle {
+      margin-right: 4px;
+    }
+
+    /* ── Main Content Shift ── */
+    #main {
+      transition: margin-left 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    #main {
+      margin-left: 280px;
+    }
+
+    @media (max-width: 900px) {
+      #sidebar {
+        width: 260px;
+      }
+      #main {
+        margin-left: 260px;
+      }
+    }
+
     /* ── Responsive ── */
     @media (max-width: 600px) {
       #topbar { padding: 0 12px; gap: 8px; }
@@ -1146,6 +1407,11 @@
       .article-title { font-size: 24px; }
       #home-screen h1 { font-size: 28px; font-weight: 200; letter-spacing: -2px; }
       #home-screen { min-height: calc(100vh - 80px); }
+      #sidebar { width: 100%; }
+      #sidebar.minimized { width: 48px; }
+      #main {
+        margin-left: 0;
+      }
     }
   </style>
 </head>
@@ -1153,7 +1419,7 @@
 
 <!-- TOP BAR -->
 <nav id="topbar">
-  <a href="/" class="wordmark">Distillery</a>
+  <a href="/"><img src="/static/dlogo.svg" alt="Distillery" style="height: 32px; display: block;" /></a>
 
   <form id="url-form" onsubmit="return false;">
     <input id="url-input" type="url" placeholder="Paste article URL…" autocomplete="off" />
@@ -1170,6 +1436,35 @@
     <button class="btn btn-ghost btn-icon" id="settings-btn" title="Settings"><span class="material-symbols-rounded">settings</span></button>
   </div>
 </nav>
+
+<!-- READING LIST SIDEBAR -->
+<aside id="sidebar" aria-label="Reading list">
+  <div id="sidebar-header">
+    <span id="sidebar-title">
+      <span class="material-symbols-rounded" style="font-size: 18px;">bookmark</span>
+      Reading List
+      <span id="sidebar-count">0</span>
+    </span>
+    <div id="sidebar-actions">
+      <button class="btn btn-ghost btn-icon" id="sidebar-minimize" title="Minimize">
+        <span class="material-symbols-rounded" style="font-size: 16px;">chevron_left</span>
+      </button>
+      <button class="btn btn-ghost btn-icon" id="sidebar-expand" title="Expand" style="display: none;">
+        <span class="material-symbols-rounded" style="font-size: 16px;">chevron_right</span>
+      </button>
+      <button class="btn btn-ghost btn-icon" id="sidebar-clear" title="Clear all">
+        <span class="material-symbols-rounded" style="font-size: 16px;">delete_sweep</span>
+      </button>
+    </div>
+  </div>
+  <div id="sidebar-bubble"></div>
+  <div id="sidebar-list">
+    <div class="sidebar-empty">
+      No articles yet.<br>
+      Right-click any link and select "Send to Distillery"
+    </div>
+  </div>
+</aside>
 
 <!-- SETTINGS MODAL -->
 <div id="settings-overlay" aria-modal="true" role="dialog" aria-label="Settings">
@@ -1357,9 +1652,7 @@
 
   <!-- HOME SCREEN -->
   <div id="home-screen">
-    <span style="font-size: 160px; line-height: 1; margin-bottom: -14px; display: block; color: #B1C9BE;">&#x1F70B;</span>
-    <h1>Distillery</h1>
-    <p>Paste any article URL to get a clean, distraction-free reading experience.</p>
+    <img src="/static/dlogo.svg" alt="Distillery" style="width: 150px; margin-bottom: 13vh;" />
     <form id="home-url-form" onsubmit="return false;">
       <input id="home-url-input" type="url" placeholder="https://example.com/article" autocomplete="off" />
       <button class="btn btn-primary btn-arrow" id="fetch-btn-home" type="submit"><span class="material-symbols-rounded">arrow_forward</span></button>
@@ -1485,6 +1778,242 @@
   let fontSize = 18;
   const MIN_FONT = 14, MAX_FONT = 28;
 
+  // ── Reading List ───────────────────────────────────────────────────────────
+  const READING_LIST_KEY = 'distillery-reading-list';
+  const MINIMIZED_KEY = 'distillery-sidebar-minimized';
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = null;
+  const sidebarList = document.getElementById('sidebar-list');
+  const sidebarCount = document.getElementById('sidebar-count');
+  const sidebarClear = document.getElementById('sidebar-clear');
+  const sidebarMinimize = document.getElementById('sidebar-minimize');
+  const sidebarExpand = document.getElementById('sidebar-expand');
+  let readingList = [];
+  let currentUrl = null;
+  let isMinimized = localStorage.getItem(MINIMIZED_KEY) === 'true';
+
+  function loadReadingList() {
+    try {
+      const saved = localStorage.getItem(READING_LIST_KEY);
+      dbg('Reading list from localStorage:', saved);
+      readingList = saved ? JSON.parse(saved) : [];
+      dbg('Loaded reading list:', readingList.length, 'items');
+    } catch (e) {
+      dbgError('Failed to load reading list', e);
+      readingList = [];
+    }
+  }
+
+  function saveReadingList() {
+    try {
+      localStorage.setItem(READING_LIST_KEY, JSON.stringify(readingList));
+      dbg('Saved reading list:', readingList.length, 'items');
+    } catch (e) {
+      dbgError('Failed to save reading list', e);
+    }
+  }
+
+  function formatRelativeTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  }
+
+  function renderReadingList() {
+    sidebarCount.textContent = readingList.length;
+
+    if (readingList.length === 0) {
+      sidebarList.innerHTML = `
+        <div class="sidebar-empty">
+          No articles yet.<br>
+          Right-click any link and select "Send to Distillery"
+        </div>
+      `;
+      return;
+    }
+
+    sidebarList.innerHTML = readingList.map((item, index) => `
+      <div class="sidebar-item ${item.url === currentUrl ? 'active' : ''}" data-index="${index}" data-url="${escapeHtml(item.url)}">
+        <button class="sidebar-item-delete" data-index="${index}" title="Remove">
+          <span class="material-symbols-rounded" style="font-size: 16px;">close</span>
+        </button>
+        <div class="sidebar-indicator"></div>
+        <div class="sidebar-item-title">${escapeHtml(item.title || 'Untitled')}</div>
+        <div class="sidebar-item-meta">
+          <span>${escapeHtml(item.author || 'Unknown')}</span>
+          <span>${formatRelativeTime(item.addedAt)}</span>
+        </div>
+      </div>
+    `).join('');
+
+    // Add click handlers
+    sidebarList.querySelectorAll('.sidebar-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.sidebar-item-delete')) return;
+        const url = el.dataset.url;
+        if (url) {
+          // Optimistic UI update - immediately show as active
+          currentUrl = url;
+          renderReadingList();
+          loadArticle(url);
+        }
+      });
+    });
+
+    sidebarList.querySelectorAll('.sidebar-item-delete').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = parseInt(el.dataset.index, 10);
+        removeFromReadingList(index);
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function addToReadingList(article) {
+    // Check if already exists
+    const existingIndex = readingList.findIndex(item => item.url === article.url);
+    if (existingIndex !== -1) {
+      // Already in list, don't move it - just update metadata if needed
+      return;
+    }
+
+    // Add new articles to top
+    readingList.unshift({
+      url: article.url,
+      title: article.title || 'Untitled',
+      author: article.author || 'Unknown',
+      date: article.date,
+      addedAt: new Date().toISOString(),
+      summary: article.summary || null
+    });
+
+    saveReadingList();
+    renderReadingList();
+  }
+
+  function removeFromReadingList(index) {
+    readingList.splice(index, 1);
+    saveReadingList();
+    renderReadingList();
+  }
+
+  function clearReadingList() {
+    if (readingList.length === 0) return;
+    if (!confirm(`Clear all ${readingList.length} articles from reading list?`)) return;
+    readingList = [];
+    saveReadingList();
+    renderReadingList();
+  }
+
+  function saveSummaryToReadingList(url, summaryText) {
+    const index = readingList.findIndex(item => item.url === url);
+    if (index !== -1) {
+      readingList[index].summary = summaryText;
+      saveReadingList();
+      dbg('Saved summary to reading list for:', url);
+    }
+  }
+
+  function toggleSidebar(show) {
+    if (show === undefined) {
+      sidebar.classList.toggle('open');
+      document.body.classList.toggle('sidebar-open');
+    } else if (show) {
+      sidebar.classList.add('open');
+      document.body.classList.add('sidebar-open');
+    } else {
+      sidebar.classList.remove('open');
+      document.body.classList.remove('sidebar-open');
+    }
+  }
+
+  function toggleMinimize() {
+    isMinimized = !isMinimized;
+    localStorage.setItem(MINIMIZED_KEY, isMinimized);
+    applyMinimizedState();
+  }
+
+  function applyMinimizedState() {
+    if (isMinimized) {
+      sidebar.classList.add('minimized');
+      document.body.classList.add('sidebar-minimized');
+      sidebarMinimize.style.display = 'none';
+      sidebarExpand.style.display = '';
+    } else {
+      sidebar.classList.remove('minimized');
+      document.body.classList.remove('sidebar-minimized');
+      sidebarMinimize.style.display = '';
+      sidebarExpand.style.display = 'none';
+    }
+  }
+
+  if (sidebarToggle) sidebarToggle.addEventListener('click', () => toggleSidebar());
+  sidebarMinimize.addEventListener('click', toggleMinimize);
+  sidebarExpand.addEventListener('click', toggleMinimize);
+  sidebarClear.addEventListener('click', clearReadingList);
+
+  // Keyboard shortcut: [ to toggle sidebar
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const tag = document.activeElement?.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        toggleSidebar();
+      }
+    }
+  });
+
+  // Initialize reading list
+  loadReadingList();
+  renderReadingList();
+  applyMinimizedState();
+
+  // ── Minimized sidebar bubble effect ────────────────────────────────────────
+  const sidebarBubble = document.getElementById('sidebar-bubble');
+
+  function updateBubble(targetEl) {
+    if (!sidebar.classList.contains('minimized') || !sidebarBubble) return;
+    const sidebarRect = sidebar.getBoundingClientRect();
+    const itemRect = targetEl.getBoundingClientRect();
+    const offsetY = itemRect.top - sidebarRect.top + (itemRect.height - 32) / 2;
+    sidebarBubble.style.opacity = '1';
+    sidebarBubble.style.transform = `translateX(-50%) translateY(${offsetY}px)`;
+  }
+
+  function hideBubble() {
+    if (!sidebarBubble) return;
+    sidebarBubble.style.opacity = '0';
+  }
+
+  sidebarList.addEventListener('mouseover', (e) => {
+    const item = e.target.closest('.sidebar-item');
+    if (item) updateBubble(item);
+  });
+
+  sidebarList.addEventListener('mouseleave', () => {
+    hideBubble();
+  });
+
+
   dbg("Script loaded. DOM ready state:", document.readyState);
 
   // ── Theme ──────────────────────────────────────────────────────────────────
@@ -1574,10 +2103,16 @@
 
       currentArticle = data;
       currentUrlHash = await computeUrlHash(url);
+      currentUrl = url;
       dbg("url hash computed", currentUrlHash);
 
       document.getElementById("url-input").value = url;
       document.getElementById("home-url-input").value = url;
+
+      // Add to reading list
+      addToReadingList({ url, title: data.title, author: data.author, date: data.date });
+      // Re-render to update active state
+      renderReadingList();
 
       renderArticle(data);
     } catch (err) {
@@ -1622,7 +2157,16 @@
     });
     dbg("paragraphs rendered", rendered);
 
-    resetSummary();
+    // Check for saved summary
+    const savedItem = readingList.find(item => item.url === currentUrl);
+    if (savedItem && savedItem.summary) {
+      const sec = document.getElementById("summary-section");
+      const content = document.getElementById("summary-content");
+      sec.style.display = "block";
+      content.innerHTML = formatSummaryToHTML(savedItem.summary);
+    } else {
+      resetSummary();
+    }
     resetAudio();
 
     dbg("calling showArticle()");
@@ -1917,7 +2461,10 @@
       // Final render
       content.innerHTML = formatSummaryToHTML(accumulated);
       dbg("Summary render complete. chars:", accumulated.length);
-      
+
+      // Save summary to reading list
+      saveSummaryToReadingList(currentUrl, accumulated);
+
     } catch (err) {
       dbgError("summarize error", err);
       content.textContent = "Error: " + err.message;
@@ -2532,10 +3079,16 @@
   (function handleExtensionUrl() {
     const hash = window.location.hash;
     if (hash.startsWith('#url=')) {
-      const url = decodeURIComponent(hash.slice(5));
+      // Parse hash params: #url=<url>&queue=1
+      const params = new URLSearchParams(hash.slice(1));
+      const url = params.get('url');
+      const showQueue = params.get('queue') === '1';
       window.location.hash = '';
       if (url) {
-        dbg('Extension URL received:', url);
+        dbg('Extension URL received:', { url, showQueue });
+        if (showQueue) {
+          toggleSidebar(true);
+        }
         loadArticle(url);
       }
     }

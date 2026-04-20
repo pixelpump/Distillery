@@ -165,6 +165,26 @@ async def refresh_api_key():
     return {"success": True, "message": "Client-side API usage - no server refresh needed"}
 
 
+@app.post("/queue")
+async def queue(req: FetchRequest):
+    """Fetch minimal article metadata for the reading list (no full text)."""
+    loop = asyncio.get_event_loop()
+    try:
+        article = await loop.run_in_executor(None, fetch_article, req.url)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error fetching article: {e}")
+
+    return {
+        "title": article.title,
+        "author": article.author,
+        "date": article.date,
+        "word_count": article.word_count,
+        "url": req.url,
+    }
+
+
 @app.post("/fetch")
 async def fetch(req: FetchRequest):
     loop = asyncio.get_event_loop()

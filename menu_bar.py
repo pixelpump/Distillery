@@ -24,7 +24,7 @@ from main import app
 # Configuration
 APP_NAME = "Distillery"
 DEFAULT_PORT = 8000
-DEFAULT_HOST = "127.0.0.1"
+DEFAULT_HOST = "0.0.0.0"
 LOG_DIR = Path.home() / "Library" / "Logs" / "Distillery"
 LOG_FILE = LOG_DIR / "distillery.log"
 

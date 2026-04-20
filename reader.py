@@ -7,6 +7,16 @@ from typing import Optional, Tuple
 from urllib.parse import quote
 import sys
 import time
+import errno
+
+
+def safe_print(message: str, file=sys.stderr):
+    """Print to stderr, suppressing broken pipe errors."""
+    try:
+        print(message, file=file, flush=True)
+    except (BrokenPipeError, IOError) as e:
+        if e.errno != errno.EPIPE:
+            raise
 
 
 @dataclass
@@ -82,7 +92,7 @@ def try_extract(url: str, source_name: str = "", delay: float = 0) -> Tuple[Opti
     """Try to download and extract content from a URL. Returns (text, metadata) or (None, None)."""
     source = source_name or url[:50]
     is_jina = "jina.ai" in url
-    print(f"[Distillery] Trying {source}...", file=sys.stderr)
+    safe_print(f"[Distillery] Trying {source}...")
     
     # Add delay for rate-limited sources
     if delay > 0:
@@ -93,13 +103,13 @@ def try_extract(url: str, source_name: str = "", delay: float = 0) -> Tuple[Opti
             resp = client.get(url)
             resp.raise_for_status()
             html = resp.text
-            print(f"[Distillery]   -> HTTP {resp.status_code}, {len(html)} bytes", file=sys.stderr)
+            safe_print(f"[Distillery]   -> HTTP {resp.status_code}, {len(html)} bytes")
     except Exception as e:
-        print(f"[Distillery]   -> Failed: {e}", file=sys.stderr)
+        safe_print(f"[Distillery]   -> Failed: {e}")
         return None, None
 
     if not html:
-        print(f"[Distillery]   -> Empty response", file=sys.stderr)
+        safe_print("[Distillery]   -> Empty response")
         return None, None
 
     # jina.ai returns clean extracted text directly, no need for trafilatura
@@ -107,11 +117,11 @@ def try_extract(url: str, source_name: str = "", delay: float = 0) -> Tuple[Opti
         text = html.strip()
         # Check if jina.ai returned an error message
         if is_jina_error(text):
-            print(f"[Distillery]   -> jina.ai returned error content", file=sys.stderr)
+            safe_print("[Distillery]   -> jina.ai returned error content")
             return None, None
         text = clean_jina_output(text)
         word_count = len(text.split())
-        print(f"[Distillery]   -> jina.ai returned {word_count} words (cleaned)", file=sys.stderr)
+        safe_print(f"[Distillery]   -> jina.ai returned {word_count} words (cleaned)")
         if word_count >= 20:
             return text, None
         return None, None
@@ -129,7 +139,7 @@ def try_extract(url: str, source_name: str = "", delay: float = 0) -> Tuple[Opti
     )
 
     word_count = len(result.split()) if result else 0
-    print(f"[Distillery]   -> Extracted {word_count} words", file=sys.stderr)
+    safe_print(f"[Distillery]   -> Extracted {word_count} words")
     
     if not result:
         return None, None
@@ -179,7 +189,7 @@ def clean_jina_output(text: str) -> str:
 
 
 def fetch_article(url: str) -> Article:
-    print(f"[Distillery] Fetching article from: {url}", file=sys.stderr)
+    safe_print(f"[Distillery] Fetching article from: {url}")
     
     # 1. Try original URL
     result, metadata = try_extract(url, "original URL")
@@ -197,7 +207,7 @@ def fetch_article(url: str) -> Article:
         result, metadata = try_extract(jina_url, "jina.ai")
         # If jina.ai succeeded (returned text), use it even if short
         if result:
-            print(f"[Distillery] Using jina.ai result: {len(result.split())} words", file=sys.stderr)
+            safe_print(f"[Distillery] Using jina.ai result: {len(result.split())} words")
             jina_success = True
 
     # 4. Try jina.ai with https (only if previous jina failed)
@@ -205,7 +215,7 @@ def fetch_article(url: str) -> Article:
         jina_url2 = f"https://r.jina.ai/{url}"
         result, metadata = try_extract(jina_url2, "jina.ai (https)")
         if result:
-            print(f"[Distillery] Using jina.ai (https) result: {len(result.split())} words", file=sys.stderr)
+            safe_print(f"[Distillery] Using jina.ai (https) result: {len(result.split())} words")
             jina_success = True
 
     # 5. Try textise dot iitty dot iitty - text extraction service
@@ -213,14 +223,14 @@ def fetch_article(url: str) -> Article:
         textise_url = f"https://r.jina.ai/http://r.jina.ai/http://cc.bingj.com/cache.aspx?d&u={quote(url, safe='')}" 
         result, metadata = try_extract(textise_url, "textise dot iitty dot iitty", delay=0.5)
         if result and not is_jina_error(result):
-            print(f"[Distillery] Using textise dot iitty dot iitty result: {len(result.split())} words", file=sys.stderr)
+            safe_print(f"[Distillery] Using textise dot iitty dot iitty result: {len(result.split())} words")
 
     # 6. Try textise dot iitty dot iitty alt URL
     if not result:
         textise2_url = f"https://r.jina.ai/http://r.jina.ai/http://r.jina.ai/http://cc.bingj.com/cache.aspx?d&u={quote(url, safe='')}"
         result, metadata = try_extract(textise2_url, "textise dot iitty dot iitty alt", delay=0.5)
         if result and not is_jina_error(result):
-            print(f"[Distillery] Using textise dot iitty dot iitty alt result: {len(result.split())} words", file=sys.stderr)
+            safe_print(f"[Distillery] Using textise dot iitty dot iitty alt result: {len(result.split())} words")
 
     # 7. Try archive.ph (archive.is mirror) - add delay to avoid rate limiting
     if not result or (not jina_success and len(result.split()) < 100):
@@ -240,7 +250,7 @@ def fetch_article(url: str) -> Article:
 
     # 8. If all failed, raise error
     if not result:
-        print(f"[Distillery] All sources failed for: {url}", file=sys.stderr)
+        safe_print(f"[Distillery] All sources failed for: {url}")
         raise ValueError(f"Could not download content from URL: {url}")
 
     result = re.sub(r'\n{3,}', '\n\n', result).strip()
