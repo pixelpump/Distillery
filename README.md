@@ -65,7 +65,7 @@ Everything happens on your machine. No tracking. No accounts. No monthly fees. Y
 - **No tracking** — zero telemetry, no external requests except those you explicitly trigger (article fetching, OpenRouter API)
 - **Rate limiting** — built-in protection (60 TTS requests/minute, 100 articles/hour per IP) via slowapi
 - **CORS enabled** — allows communication between the Chrome extension and the local server
-- **macOS menu bar app** — native menu bar icon (🜋) with server start/stop, status display, and log viewer
+- **macOS menu bar app** — native menu bar icon with server start/stop, status display, and log viewer
 
 ---
 
@@ -81,9 +81,9 @@ Everything happens on your machine. No tracking. No accounts. No monthly fees. Y
    mv ~/Downloads/Distillery.app /Applications/
    ```
 
-3. Double-click **Distillery** in your Applications folder. The 🜋 icon will appear in your menu bar and the server starts automatically.
+3. Double-click **Distillery** in your Applications folder. The app icon will appear in your menu bar and the server starts automatically.
 
-4. Click the 🜋 menu bar icon → **"Open Distillery"**, or visit http://localhost:8000
+4. Click the **Distillery** menu bar icon → **"Open Distillery"**, or visit http://localhost:8000
 
 ### Option B: Run from Source (Development)
 

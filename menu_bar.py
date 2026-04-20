@@ -21,6 +21,10 @@ import rumps
 import uvicorn
 from main import app
 
+# Get the directory containing this script for icon path
+APP_DIR = Path(__file__).parent.resolve()
+ICON_PATH = APP_DIR / "static" / "beaker_icon.svg"
+
 # Configuration
 APP_NAME = "Distillery"
 DEFAULT_PORT = 8000
@@ -45,7 +49,8 @@ logger = logging.getLogger(__name__)
 
 class DistilleryApp(rumps.App):
     def __init__(self):
-        super().__init__(APP_NAME, icon=None, template=True)
+        icon = str(ICON_PATH) if ICON_PATH.exists() else None
+        super().__init__(APP_NAME, icon=icon, template=True)
         self.server_thread = None
         self.server_running = False
         self.host = DEFAULT_HOST
@@ -74,10 +79,9 @@ class DistilleryApp(rumps.App):
         
         if self.server_running:
             status_item.title = f"Server Status: Running on {self.host}:{self.port}"
-            self.title = "\U0001F70B"  # 🜋 Alchemical alembic symbol
         else:
             status_item.title = "Server Status: Stopped"
-            self.title = "\U0001F70B"  # 🜋 Alembic (same icon, server state shown in menu)
+        # Icon is set via template image, no title needed
     
     def run_server(self):
         """Run the uvicorn server in a thread."""
